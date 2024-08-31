@@ -1,8 +1,10 @@
 const net = require('net');
 
 const server = net.createServer((connection) => {
-  // Handle connection
-  connection.write('+PONG\r\n');
+  connection.addListener('data', (data) => {
+    console.log('Received ', data.toString());
+    connection.write('+PONG\r\n');
+  });
 });
 
 server.listen(6379, '127.0.0.1');
