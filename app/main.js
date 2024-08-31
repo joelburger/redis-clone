@@ -15,15 +15,16 @@ function expireItems() {
   Object.keys(STORAGE).forEach((key) => {
     const item = STORAGE[key];
 
-    if (item.expireAt) {
-      if (item.expireAt < Date.now()) {
+    if (item.expiresIn) {
+      if (new Date() > item.expireAt) {
+        console.log(`Expiring ${key}`);
         delete STORAGE[key];
       }
     }
   });
 }
 
-setInterval(expireItems, 1000);
+setInterval(expireItems, 1);
 
 function parseRespBulkString(data) {
   const dataString = Buffer.from(data).toString('UTF-8');
@@ -35,7 +36,7 @@ function parseRespBulkString(data) {
 
 function validateArguments(commandName, args, minCount, maxCount = minCount) {
   if (minCount === 0) {
-    return !args;
+    return args.length === 0;
   }
 
   if (args.length < minCount || args.length > maxCount) {
@@ -65,28 +66,33 @@ function handleData(connection, data) {
       validateArguments(commands.SET, args, 2, 4);
       const [key, value, expiryArgument, expiry] = args;
 
-      if (expiryArgument && expiryArgument.toLowerCase() === 'px') {
+      let entry;
+      if (expiryArgument?.toLowerCase() === 'px') {
         const expiresIn = Number(expiry);
-        STORAGE[key] = {
+        entry = {
           value,
           expireAt: new Date(Date.now() + expiresIn),
           expiresIn,
         };
       } else {
-        STORAGE[key] = {
+        entry = {
           value,
         };
       }
+      console.log('Adding entry', entry);
+      STORAGE[key] = entry;
       writeString(connection, 'OK');
       break;
     case commands.GET:
       validateArguments(commands.GET, args, 1);
       const [searchKey] = args;
       if (STORAGE[searchKey]) {
-        STORAGE[searchKey].expireAt = new Date(Date.now() + STORAGE[searchKey].expiresIn);
+        if (STORAGE[searchKey].expiresIn) {
+          STORAGE[searchKey].expireAt = new Date(Date.now() + STORAGE[searchKey].expiresIn);
+        }
         writeString(connection, STORAGE[searchKey].value);
       } else {
-        connection.write('$-1\\r\\n');
+        connection.write('$-1\r\n');
       }
       break;
     default:
