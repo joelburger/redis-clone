@@ -86,7 +86,7 @@ function handleData(connection, data) {
         STORAGE[searchKey].expireAt = new Date(Date.now() + STORAGE[searchKey].expiresIn);
         writeString(connection, STORAGE[searchKey].value);
       } else {
-        connection.write('$-1\r\n');
+        connection.write('$-1\\r\\n');
       }
       break;
     default:
