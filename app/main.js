@@ -6,6 +6,25 @@ const net = require('net');
 
 const commands = { PING: 'ping', ECHO: 'echo', SET: 'set', GET: 'get' };
 
+const STORAGE = {};
+
+function expireItems() {
+  if (Object.keys(STORAGE).length === 0) {
+    return;
+  }
+  Object.keys(STORAGE).forEach((key) => {
+    const item = STORAGE[key];
+
+    if (item.expireAt) {
+      if (item.expireAt < Date.now()) {
+        delete STORAGE[key];
+      }
+    }
+  });
+}
+
+setInterval(expireItems, 1000);
+
 function parseRespBulkString(data) {
   const dataString = Buffer.from(data).toString('UTF-8');
 
@@ -14,12 +33,12 @@ function parseRespBulkString(data) {
   });
 }
 
-function validateArguments(commandName, arguments, expectedArgumentCount) {
-  if (expectedArgumentCount === 0) {
-    return !arguments;
+function validateArguments(commandName, args, minCount, maxCount = minCount) {
+  if (minCount === 0) {
+    return !args;
   }
 
-  if (arguments.length !== expectedArgumentCount) {
+  if (args.length < minCount || args.length > maxCount) {
     throw new Error(`Invalid number of arguments for ${commandName}`);
   }
 }
@@ -28,33 +47,46 @@ function writeString(connection, stringValue) {
   connection.write(`+${stringValue}\r\n`);
 }
 
-function handleData(connection, data, map) {
+function handleData(connection, data) {
   const stringValues = parseRespBulkString(data);
-  const [command, ...arguments] = stringValues;
+  const [command, ...args] = stringValues;
 
   switch (command.toLowerCase()) {
     case commands.PING:
-      validateArguments(commands.PING, arguments, 0);
+      validateArguments(commands.PING, args, 0);
       writeString(connection, 'PONG');
       break;
     case commands.ECHO:
-      validateArguments(commands.ECHO, arguments, 1);
-      const [echoValue] = arguments;
+      validateArguments(commands.ECHO, args, 1);
+      const [echoValue] = args;
       writeString(connection, echoValue);
       break;
     case commands.SET:
-      validateArguments(commands.SET, arguments, 2);
-      const [key, value] = arguments;
-      map[key] = value;
+      validateArguments(commands.SET, args, 2, 4);
+      const [key, value, expiryArgument, expiry] = args;
+
+      if (expiryArgument && expiryArgument.toLowerCase() === 'px') {
+        const expiresIn = Number(expiry);
+        STORAGE[key] = {
+          value,
+          expireAt: new Date(Date.now() + expiresIn),
+          expiresIn,
+        };
+      } else {
+        STORAGE[key] = {
+          value,
+        };
+      }
       writeString(connection, 'OK');
       break;
     case commands.GET:
-      validateArguments(commands.GET, arguments, 1);
-      const [searchKey] = arguments;
-      if (map[searchKey]) {
-        writeString(connection, map[searchKey]);
+      validateArguments(commands.GET, args, 1);
+      const [searchKey] = args;
+      if (STORAGE[searchKey]) {
+        STORAGE[searchKey].expireAt = new Date(Date.now() + STORAGE[searchKey].expiresIn);
+        writeString(connection, STORAGE[searchKey].value);
       } else {
-        connection.write('$-1\\r\\n');
+        connection.write('$-1\r\n');
       }
       break;
     default:
@@ -63,10 +95,8 @@ function handleData(connection, data, map) {
 }
 
 const server = net.createServer((connection) => {
-  const map = new Map();
-
   connection.on('data', (data) => {
-    handleData(connection, data, map); // Send a response back to the client
+    handleData(connection, data); // Send a response back to the client
   });
   connection.on('error', (err) => console.log('Connection error', err));
 });
