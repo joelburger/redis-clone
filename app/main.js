@@ -1,108 +1,79 @@
 const net = require('net');
+const { commands } = require('./constants');
+const ping = require('./commands/ping');
+const echo = require('./commands/echo');
+const get = require('./commands/get');
+const set = require('./commands/set');
+const config = require('./commands/config');
+const { CONFIG, STORAGE } = require('./global');
 
 // References:
 // https://nodejs.org/docs/latest-v20.x/api/net.html
 // https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings
 
-const commands = { PING: 'ping', ECHO: 'echo', SET: 'set', GET: 'get' };
+const commandProcessors = {};
 
-const STORAGE = {};
+setInterval(expireItems, 1);
+readConfig();
+registerCommandProcessors();
+
+function registerCommandProcessors() {
+  commandProcessors[commands.PING] = ping;
+  commandProcessors[commands.ECHO] = echo;
+  commandProcessors[commands.GET] = get;
+  commandProcessors[commands.SET] = set;
+  commandProcessors[commands.CONFIG] = config;
+}
+
+function readConfig() {
+  const cliArguments = process.argv.slice(2);
+
+  cliArguments.forEach((arg, index) => {
+    if (arg.startsWith('--')) {
+      const key = cliArguments[index].replace('--', '').toLowerCase();
+      CONFIG[key] = cliArguments[index + 1];
+    }
+  });
+}
 
 function expireItems() {
-  if (Object.keys(STORAGE).length === 0) {
-    return;
-  }
-  Object.keys(STORAGE).forEach((key) => {
+  for (const key of Object.keys(STORAGE)) {
     const item = STORAGE[key];
 
-    if (item.expiresIn) {
+    if (item.expireAt) {
       if (new Date() > item.expireAt) {
         console.log(`Expiring ${key}`);
         delete STORAGE[key];
       }
     }
-  });
+  }
 }
-
-setInterval(expireItems, 1);
 
 function parseRespBulkString(data) {
-  const dataString = Buffer.from(data).toString('UTF-8');
-
-  return dataString.split('\r\n').filter((component) => {
-    return component && !component.startsWith('*') && !component.startsWith('$');
-  });
+  return Buffer.from(data)
+    .toString('UTF-8')
+    .split('\r\n')
+    .filter((component) => {
+      return component && !component.startsWith('*') && !component.startsWith('$');
+    });
 }
 
-function validateArguments(commandName, args, minCount, maxCount = minCount) {
-  if (minCount === 0) {
-    return args.length === 0;
-  }
+function handleDataEvent(connection, data) {
+  const parsedData = parseRespBulkString(data);
+  const [command, ...args] = parsedData;
 
-  if (args.length < minCount || args.length > maxCount) {
-    throw new Error(`Invalid number of arguments for ${commandName}`);
-  }
-}
+  const redisCommand = command.toLowerCase();
 
-function writeString(connection, stringValue) {
-  connection.write(`+${stringValue}\r\n`);
-}
-
-function handleData(connection, data) {
-  const stringValues = parseRespBulkString(data);
-  const [command, ...args] = stringValues;
-
-  switch (command.toLowerCase()) {
-    case commands.PING:
-      validateArguments(commands.PING, args, 0);
-      writeString(connection, 'PONG');
-      break;
-    case commands.ECHO:
-      validateArguments(commands.ECHO, args, 1);
-      const [echoValue] = args;
-      writeString(connection, echoValue);
-      break;
-    case commands.SET:
-      validateArguments(commands.SET, args, 2, 4);
-      const [key, value, expiryArgument, expiry] = args;
-
-      let entry;
-      if (expiryArgument?.toLowerCase() === 'px') {
-        const expiresIn = Number(expiry);
-        entry = {
-          value,
-          expireAt: new Date(Date.now() + expiresIn),
-          expiresIn,
-        };
-      } else {
-        entry = {
-          value,
-        };
-      }
-      console.log('Adding entry', entry);
-      STORAGE[key] = entry;
-      writeString(connection, 'OK');
-      break;
-    case commands.GET:
-      validateArguments(commands.GET, args, 1);
-      const [searchKey] = args;
-      if (STORAGE[searchKey]) {
-        if (STORAGE[searchKey].expiresIn) {
-          STORAGE[searchKey].expireAt = new Date(Date.now() + STORAGE[searchKey].expiresIn);
-        }
-        writeString(connection, STORAGE[searchKey].value);
-      } else {
-        connection.write('$-1\r\n');
-      }
-      break;
-    default:
-      throw new Error(`Invalid command: ${command}`);
+  if (commandProcessors.hasOwnProperty(redisCommand)) {
+    commandProcessors[redisCommand].process(connection, args);
+  } else {
+    console.log(`Unknown command: ${redisCommand}`);
   }
 }
 
 const server = net.createServer((connection) => {
   connection.on('data', (data) => {
-    handleData(connection, data); // Send a response back to the client
+    handleDataEvent(connection, data); // Send a response back to the client
   });
   connection.on('error', (err) => console.log('Connection error', err));
 });
