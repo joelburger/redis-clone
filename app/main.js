@@ -11,19 +11,16 @@ const { CONFIG, STORAGE } = require('./global');
 // https://nodejs.org/docs/latest-v20.x/api/net.html
 // https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings
 
-const commandProcessors = {};
-
 setInterval(expireItems, 1);
 readConfig();
-registerCommandProcessors();
 
-function registerCommandProcessors() {
-  commandProcessors[commands.PING] = ping;
-  commandProcessors[commands.ECHO] = echo;
-  commandProcessors[commands.GET] = get;
-  commandProcessors[commands.SET] = set;
-  commandProcessors[commands.CONFIG] = config;
-}
+const commandProcessors = {
+  [commands.PING]: ping,
+  [commands.ECHO]: echo,
+  [commands.GET]: get,
+  [commands.SET]: set,
+  [commands.CONFIG]: config,
+};
 
 function readConfig() {
   const cliArguments = process.argv.slice(2);
@@ -59,13 +56,12 @@ function parseRespBulkString(data) {
 }
 
 function handleDataEvent(connection, data) {
-  const parsedData = parseRespBulkString(data);
-  const [command, ...args] = parsedData;
-
+  const [command, ...args] = parseRespBulkString(data);
   const redisCommand = command.toLowerCase();
+  const processor = commandProcessors[redisCommand];
 
-  if (commandProcessors.hasOwnProperty(redisCommand)) {
-    commandProcessors[redisCommand].process(connection, args);
+  if (processor) {
+    processor.process(connection, args);
   } else {
     console.log(`Unknown command: ${redisCommand}`);
   }
