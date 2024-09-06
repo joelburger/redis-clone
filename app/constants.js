@@ -8,7 +8,7 @@ const commands = {
   INFO: 'info',
 };
 
-const parameters = {
+const cliParameters = {
   DIRECTORY: 'dir',
   DB_FILENAME: 'dbfilename',
   PORT: 'port',
@@ -24,6 +24,6 @@ const fileMarkers = {
 
 module.exports = {
   commands,
-  parameters,
+  cliParameters: cliParameters,
   fileMarkers,
 };

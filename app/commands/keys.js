@@ -1,4 +1,4 @@
-const { commands, parameters, fileMarkers } = require('../constants');
+const { commands, cliParameters, fileMarkers } = require('../constants');
 const { validateArguments, writeString, writeArray } = require('../utils');
 const { STORAGE } = require('../global');
 
