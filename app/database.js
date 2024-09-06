@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { fileMarkers, cliParameters } = require('./constants');
 const { CONFIG, STORAGE } = require('./global');
+const { sliceData, parseString, parseNumber } = require('./utils');
 
 // First 4 bytes from DB file are ignored
 // e.g.
@@ -9,45 +10,6 @@ const { CONFIG, STORAGE } = require('./global');
 // 02                       /* The size of the hash table that stores the keys and values (size encoded).
 // 01                       /* The size of the hash table that stores the expires of the keys (size encoded).
 const DB_FILE_START_OFFSET = 4;
-
-function sliceData(binaryData, startCharacter, endCharacter) {
-  const startPosition = binaryData.findIndex((byte) => byte === startCharacter);
-  const endPosition = binaryData.findIndex((byte) => byte === endCharacter);
-
-  if (startPosition > -1 && endPosition > startPosition) {
-    return binaryData.slice(startPosition + 1, endPosition);
-  }
-  return binaryData;
-}
-
-function parseNumber(binaryData, cursor, numberOfBytes) {
-  let unixTime = 0;
-  for (let i = 0; i < numberOfBytes; i++) {
-    unixTime += binaryData[cursor + i] * Math.pow(256, i);
-  }
-
-  return unixTime;
-}
-
-function parseString(binaryData, cursor) {
-  if (cursor >= binaryData.length) {
-    return [null, 0];
-  }
-
-  // first character indicates the length of the key
-  const stringLength = binaryData[cursor];
-
-  // increment cursor to the start of the string value
-  cursor++;
-
-  // retrieve the string value
-  const stringValue = binaryData.slice(cursor, cursor + stringLength)?.toString('ascii');
-
-  // increment cursor with length of string
-  cursor += stringLength;
-
-  return { stringValue, cursor };
-}
 
 function readDatabaseFile() {
   if (!CONFIG[cliParameters.DIRECTORY] || !CONFIG[cliParameters.DB_FILENAME]) {
@@ -89,13 +51,13 @@ function parseItemExpiry(items, cursor) {
 }
 
 function loadDatabase() {
-  const binaryData = readDatabaseFile();
+  const buffer = readDatabaseFile();
 
-  if (!binaryData) {
+  if (!buffer) {
     return;
   }
 
-  const database = sliceData(binaryData, fileMarkers.START_OF_DB, fileMarkers.END_OF_DB);
+  const database = sliceData(buffer, fileMarkers.START_OF_DB, fileMarkers.END_OF_DB);
 
   const items = database.slice(DB_FILE_START_OFFSET);
 
