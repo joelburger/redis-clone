@@ -61,6 +61,13 @@ function sliceData(buffer, startCharacter, endCharacter) {
   return buffer;
 }
 
+function cleanString(stringValue) {
+  if (!stringValue) {
+    return '';
+  }
+  return stringValue.replace(/[\r\n]/g, '');
+}
+
 function parseNumber(buffer, cursor, numberOfBytes) {
   let unixTime = 0;
   for (let i = 0; i < numberOfBytes; i++) {
@@ -94,6 +101,7 @@ module.exports = {
   validateArguments,
   constructArray,
   constructSimpleString,
+  cleanString,
   writeString,
   writeArray,
   generateRandomString,
