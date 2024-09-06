@@ -1,7 +1,7 @@
 const net = require('net');
 const { CONFIG, SERVER_INFO } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
-const { generateRandomString, parseRespBulkString, constructArray } = require('./utils');
+const { generateRandomString, parseRespBulkString, constructArray, parseString } = require('./utils');
 const { cliParameters } = require('./constants');
 const processors = require('./processors');
 const { send } = require('./network');
@@ -58,25 +58,26 @@ function startServer() {
   });
 }
 
-function pingMaster() {
+async function pingMaster() {
   if (SERVER_INFO.role === 'master') {
     return;
   }
-
   const [host, port] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-
   const message = constructArray(['PING']);
-
-  send(host, port, message);
+  const buffer = await send(host, port, message);
+  const [data] = parseString(buffer);
+  if (data !== 'PONG') {
+    throw new Error(`Invalid handshake response from master: ${data}`);
+  }
 }
 
-function initialise() {
+async function initialise() {
   setInterval(expireItems, 10);
   parseCliParameters();
   calculateServerInfo();
   loadDatabase();
   startServer();
-  pingMaster();
+  await pingMaster();
 }
 
 initialise();

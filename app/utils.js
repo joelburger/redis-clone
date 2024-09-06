@@ -70,7 +70,7 @@ function parseNumber(buffer, cursor, numberOfBytes) {
   return unixTime;
 }
 
-function parseString(buffer, cursor) {
+function parseString(buffer, cursor = 0) {
   if (cursor >= buffer.length) {
     return [null, 0];
   }

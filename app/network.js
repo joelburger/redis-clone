@@ -1,24 +1,30 @@
 const net = require('net');
 
-function send(host, port, message) {
-  const client = new net.Socket();
+async function send(host, port, message) {
+  return new Promise((resolve, reject) => {
+    const client = new net.Socket();
 
-  client.connect(port, host, () => {
-    console.log(`Connected to ${host}:${port}`);
-    client.write(message);
-  });
+    client.connect(port, host, () => {
+      console.log(`Connected to ${host}:${port}`);
+      client.write(message);
+    });
 
-  client.on('data', (data) => {
-    console.log(`Received: ${data}`);
-    client.destroy(); // Close the connection after receiving the response
-  });
+    client.on('data', (buffer) => {
+      console.log(`Received: ${buffer}`);
 
-  client.on('close', () => {
-    console.log('Connection closed');
-  });
+      client.destroy(); // Close the connection after receiving the response
 
-  client.on('error', (err) => {
-    console.error(`Connection error: ${err.message}`);
+      resolve(buffer);
+    });
+
+    client.on('close', () => {
+      console.log('Connection closed');
+    });
+
+    client.on('error', (err) => {
+      console.error(`Connection error: ${err.message}`);
+      reject(err);
+    });
   });
 }
 
