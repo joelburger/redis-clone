@@ -12,6 +12,7 @@ const parameters = {
   DIRECTORY: 'dir',
   DB_FILENAME: 'dbfilename',
   PORT: 'port',
+  REPLICA_OF: 'replicaof',
 };
 
 const fileMarkers = {
