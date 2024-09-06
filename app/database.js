@@ -12,6 +12,10 @@ function sliceData(binaryData, startCharacter, endCharacter) {
   return binaryData;
 }
 
+function parseNumber(binaryData, cursor, numberOfBytes) {
+  return Number(Buffer.from(binaryData.slice(cursor, numberOfBytes)).toString('ascii'));
+}
+
 function parseString(binaryData, cursor) {
   if (cursor >= binaryData.length) {
     return [null, 0];
@@ -56,48 +60,56 @@ function loadDatabase() {
   // FB                       // Indicates that hash table size information follows.
   // 02                       /* The size of the hash table that stores the keys and values (size encoded).
   // 01                       /* The size of the hash table that stores the expires of the keys (size encoded).
-  const databaseKeys = database.slice(4);
+  const items = database.slice(4);
 
-  console.log('databaseKeys', databaseKeys);
+  console.log('databaseKeys', items);
 
   let cursor = 0;
-  while (cursor < databaseKeys.length) {
+  while (cursor < items.length) {
     // TODO handle different encoding types
-    const encodingType = databaseKeys[cursor];
+    const encodingType = items[cursor];
 
     // move the cursor to the start of the key
     cursor++;
 
-    const [key, keyLength] = parseString(databaseKeys, cursor);
+    const [key, keyLength] = parseString(items, cursor);
     cursor += keyLength;
 
     // move the cursor to the start of the  value
     cursor++;
 
-    const [value, valueLength] = parseString(databaseKeys, cursor);
+    const [value, valueLength] = parseString(items, cursor);
     cursor += valueLength;
 
     // move the cursor to either the next item or the expiry marker
     cursor++;
 
-    // TODO Handle expiry
-    if (databaseKeys[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
+    let expireAt;
+    if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
       // skip expiry marker
       cursor++;
 
+      expireAt = new Date(parseNumber(items, cursor, 8));
+
       // skip expiry value in ms (8 bytes)
       cursor += 8;
-    } else if (databaseKeys[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
+    } else if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
       // skip expiry marker
       cursor++;
+
+      expireAt = new Date(parseNumber(items, cursor, 4));
 
       // skip the expiry value in s (4 bytes)
       cursor += 4;
     }
 
-    console.log(`about to insert: ${key} - ${value}`);
-
-    STORAGE.set(key, { name: key, value });
+    if (expireAt) {
+      console.log(`about to insert: ${key} - ${value} expiring at ${expireAt}`);
+      STORAGE.set(key, { name: key, value, expireAt });
+    } else {
+      console.log(`about to insert: ${key} - ${value}`);
+      STORAGE.set(key, { name: key, value });
+    }
   }
 }
 
