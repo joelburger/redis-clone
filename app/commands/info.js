@@ -1,22 +1,19 @@
-const { commands, parameters } = require('../constants');
+const { commands } = require('../constants');
 const { validateArguments, writeString } = require('../utils');
-const { CONFIG } = require('../global');
-
-function calculateRole() {
-  if (CONFIG[parameters.REPLICA_OF]) {
-    return 'slave';
-  }
-  return 'master';
-}
+const { CONFIG, SERVER_INFO } = require('../global');
 
 module.exports = {
   process(connection, args) {
     validateArguments(commands.INFO, args, 0, 1);
 
-    // TODO replace this
+    const [category] = args;
 
-    const serverInfo = `role:${calculateRole()}`;
+    const output = [`role:${SERVER_INFO.role}`];
 
-    writeString(connection, serverInfo);
+    if (category === 'replication' && SERVER_INFO.replication) {
+      Object.entries(SERVER_INFO.replication)?.forEach(([key, value]) => output.push(`${key}:${value}`));
+    }
+
+    writeString(connection, output);
   },
 };

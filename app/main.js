@@ -7,8 +7,9 @@ const set = require('./commands/set');
 const keys = require('./commands/keys');
 const config = require('./commands/config');
 const info = require('./commands/info');
-const { CONFIG, STORAGE } = require('./global');
+const { CONFIG, STORAGE, SERVER_INFO } = require('./global');
 const { loadDatabase } = require('./database');
+const { generateRandomString } = require('./utils');
 
 // References:
 // https://nodejs.org/docs/latest-v20.x/api/net.html
@@ -16,6 +17,7 @@ const { loadDatabase } = require('./database');
 
 setInterval(expireItems, 1);
 readConfig();
+calculateServerInfo();
 loadDatabase();
 
 const commandProcessors = {
@@ -27,6 +29,15 @@ const commandProcessors = {
   [commands.KEYS]: keys,
   [commands.INFO]: info,
 };
+
+function calculateServerInfo() {
+  if (CONFIG[parameters.REPLICA_OF]) {
+    SERVER_INFO.role = 'slave';
+  } else {
+    SERVER_INFO.role = 'master';
+    SERVER_INFO.replication = { master_replid: generateRandomString(), master_repl_offset: 0 };
+  }
+}
 
 function readConfig() {
   const cliArguments = process.argv.slice(2);
@@ -71,7 +82,7 @@ function handleDataEvent(connection, data) {
       console.log(`Unknown command: ${redisCommand}`);
     }
   } catch (err) {
-    console.log(`Error: ${err}`);
+    console.log('Error:', err);
   }
 }
 

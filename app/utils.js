@@ -17,11 +17,25 @@ function writeArray(connection, stringValues) {
   for (const value of stringValues) {
     output += `$${value.length}\r\n${value}\r\n`;
   }
+  console.log('output', output);
   connection.write(output);
+}
+
+function generateRandomString(length = 40) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
 }
 
 module.exports = {
   validateArguments,
   writeString,
   writeArray,
+  generateRandomString,
 };
