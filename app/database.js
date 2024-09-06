@@ -13,7 +13,16 @@ function sliceData(binaryData, startCharacter, endCharacter) {
 }
 
 function parseNumber(binaryData, cursor, numberOfBytes) {
-  return Number(Buffer.from(binaryData.slice(cursor, numberOfBytes)).toString('ascii'));
+  console.log('number value', binaryData.slice(cursor, numberOfBytes));
+
+  let unixTime = 0;
+  for (let i = 0; i < numberOfBytes; i++) {
+    unixTime += binaryData[cursor + i] * Math.pow(256, i);
+  }
+
+  console.log('unixTime', unixTime);
+
+  return unixTime;
 }
 
 function parseString(binaryData, cursor) {
@@ -66,10 +75,29 @@ function loadDatabase() {
 
   let cursor = 0;
   while (cursor < items.length) {
+    let expireAt;
+    if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
+      // read expiry marker
+      cursor++;
+
+      expireAt = new Date(parseNumber(items, cursor, 8));
+
+      // move cursor to the equivalent length of the expiry value in ms (8 bytes)
+      cursor += 8;
+    } else if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
+      // read the expiry marker
+      cursor++;
+
+      expireAt = new Date(parseNumber(items, cursor, 4));
+
+      // move cursor to the equivalent length of the expiry value in s (4 bytes)
+      cursor += 4;
+    }
+
     // TODO handle different encoding types
     const encodingType = items[cursor];
 
-    // move the cursor to the start of the key
+    // read the encoding type
     cursor++;
 
     const [key, keyLength] = parseString(items, cursor);
@@ -81,27 +109,8 @@ function loadDatabase() {
     const [value, valueLength] = parseString(items, cursor);
     cursor += valueLength;
 
-    // move the cursor to either the next item or the expiry marker
+    // move the cursor to the next item
     cursor++;
-
-    let expireAt;
-    if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
-      // skip expiry marker
-      cursor++;
-
-      expireAt = new Date(parseNumber(items, cursor, 8));
-
-      // skip expiry value in ms (8 bytes)
-      cursor += 8;
-    } else if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
-      // skip expiry marker
-      cursor++;
-
-      expireAt = new Date(parseNumber(items, cursor, 4));
-
-      // skip the expiry value in s (4 bytes)
-      cursor += 4;
-    }
 
     if (expireAt) {
       console.log(`about to insert: ${key} - ${value} expiring at ${expireAt}`);
