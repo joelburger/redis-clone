@@ -1,5 +1,5 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString } = require('../utils');
+const { validateArguments, writeString, NULL_VALUE } = require('../utils');
 const { STORAGE } = require('../global');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
       const matched = STORAGE.get(specifiedKey);
       writeString(connection, matched.value);
     } else {
-      connection.write('$-1\r\n');
+      connection.write(NULL_VALUE);
     }
   },
 };

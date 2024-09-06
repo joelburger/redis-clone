@@ -1,3 +1,5 @@
+const NULL_VALUE = '$-1\r\n';
+
 function validateArguments(commandName, args, minCount, maxCount = minCount) {
   if (minCount === 0) {
     return args.length === 0;
@@ -8,17 +10,24 @@ function validateArguments(commandName, args, minCount, maxCount = minCount) {
   }
 }
 
-function writeString(connection, stringValue) {
-  connection.write(`+${stringValue}\r\n`);
-}
-
-function writeArray(connection, stringValues) {
+function constructArray(stringValues) {
   let output = `*${stringValues.length}\r\n`;
   for (const value of stringValues) {
     output += `$${value.length}\r\n${value}\r\n`;
   }
-  console.log('output', output);
-  connection.write(output);
+  return output;
+}
+
+function constructSimpleString(stringValue) {
+  return `+${stringValue}\r\n`;
+}
+
+function writeString(connection, stringValue) {
+  connection.write(constructSimpleString(stringValue));
+}
+
+function writeArray(connection, stringValues) {
+  connection.write(constructArray(stringValues));
 }
 
 function generateRandomString(length = 40) {
@@ -83,6 +92,8 @@ function parseString(buffer, cursor) {
 
 module.exports = {
   validateArguments,
+  constructArray,
+  constructSimpleString,
   writeString,
   writeArray,
   generateRandomString,
@@ -90,4 +101,5 @@ module.exports = {
   sliceData,
   parseNumber,
   parseString,
+  NULL_VALUE,
 };
