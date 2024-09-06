@@ -7,20 +7,21 @@ module.exports = {
     validateArguments(commands.SET, args, 2, 4);
     const [key, value, expiryArgument, expiry] = args;
 
-    let entry;
+    let item;
     if (expiryArgument?.toLowerCase() === 'px') {
       const expiresIn = Number(expiry);
-      entry = {
+      item = {
+        name: key,
         value,
         expireAt: new Date(Date.now() + expiresIn),
         expiresIn,
       };
     } else {
-      entry = {
+      item = {
         value,
       };
     }
-    STORAGE[key] = entry;
+    STORAGE.set(key, item);
     writeString(connection, 'OK');
   },
 };

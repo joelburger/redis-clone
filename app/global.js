@@ -1,4 +1,4 @@
 module.exports = {
-  STORAGE: {},
+  STORAGE: new Map(),
   CONFIG: {},
 };

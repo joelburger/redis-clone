@@ -7,6 +7,7 @@ const set = require('./commands/set');
 const keys = require('./commands/keys');
 const config = require('./commands/config');
 const { CONFIG, STORAGE } = require('./global');
+const { loadDatabase } = require('./database');
 
 // References:
 // https://nodejs.org/docs/latest-v20.x/api/net.html
@@ -14,6 +15,7 @@ const { CONFIG, STORAGE } = require('./global');
 
 setInterval(expireItems, 1);
 readConfig();
+loadDatabase();
 
 const commandProcessors = {
   [commands.PING]: ping,
@@ -36,13 +38,11 @@ function readConfig() {
 }
 
 function expireItems() {
-  for (const key of Object.keys(STORAGE)) {
-    const item = STORAGE[key];
-
+  for (const item of STORAGE.values()) {
     if (item.expireAt) {
       if (new Date() > item.expireAt) {
-        console.log(`Expiring ${key}`);
-        delete STORAGE[key];
+        console.log(`Expiring ${item.name}`);
+        STORAGE.delete(item.name);
       }
     }
   }

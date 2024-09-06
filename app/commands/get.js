@@ -5,12 +5,16 @@ const { STORAGE } = require('../global');
 module.exports = {
   process(connection, args) {
     validateArguments(commands.GET, args, 1);
-    const [key] = args;
-    if (STORAGE[key]) {
-      if (STORAGE[key].expiresIn) {
-        STORAGE[key].expireAt = new Date(Date.now() + STORAGE[key].expiresIn);
+    const [specifiedKey] = args;
+
+    console.log('STORAGE', Array.from(STORAGE.values()));
+
+    if (STORAGE.has(specifiedKey)) {
+      const matched = STORAGE.get(specifiedKey);
+      if (matched.expiresIn) {
+        matched.expireAt = new Date(Date.now() + matched.expiresIn);
       }
-      writeString(connection, STORAGE[key].value);
+      writeString(connection, matched.value);
     } else {
       connection.write('$-1\r\n');
     }
