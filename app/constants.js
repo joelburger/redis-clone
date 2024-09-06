@@ -10,6 +10,7 @@ const commands = {
 const parameters = {
   DIRECTORY: 'dir',
   DB_FILENAME: 'dbfilename',
+  PORT: 'port',
 };
 
 const fileMarkers = {

@@ -1,5 +1,5 @@
 const net = require('net');
-const { commands } = require('./constants');
+const { commands, parameters } = require('./constants');
 const ping = require('./commands/ping');
 const echo = require('./commands/echo');
 const get = require('./commands/get');
@@ -82,6 +82,8 @@ const server = net.createServer((connection) => {
 
 server.on('error', (err) => console.log('Server error', err));
 
-server.listen(6379, '127.0.0.1', () => {
+const port = CONFIG[parameters.PORT] || 6379;
+
+server.listen(port, '127.0.0.1', () => {
   console.log(`Listening on ${server.address().address}:${server.address().port}`);
 });

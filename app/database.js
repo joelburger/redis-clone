@@ -13,14 +13,10 @@ function sliceData(binaryData, startCharacter, endCharacter) {
 }
 
 function parseNumber(binaryData, cursor, numberOfBytes) {
-  console.log('number value', binaryData.slice(cursor, numberOfBytes));
-
   let unixTime = 0;
   for (let i = 0; i < numberOfBytes; i++) {
     unixTime += binaryData[cursor + i] * Math.pow(256, i);
   }
-
-  console.log('unixTime', unixTime);
 
   return unixTime;
 }
@@ -37,21 +33,48 @@ function parseString(binaryData, cursor) {
   cursor++;
 
   // retrieve the string value
-  const value = binaryData.slice(cursor, cursor + stringLength)?.toString('ascii');
+  const stringValue = binaryData.slice(cursor, cursor + stringLength)?.toString('ascii');
 
-  return [value, stringLength];
+  return { stringValue, stringLength };
 }
 
 function readDatabaseFile() {
-  const filePath = `${CONFIG[parameters.DIRECTORY]}/${CONFIG[parameters.DB_FILENAME]}`;
-  const doesDBFileExist = fs.existsSync(filePath);
+  if (!CONFIG[parameters.DIRECTORY] || !CONFIG[parameters.DB_FILENAME]) {
+    return null;
+  }
 
-  if (doesDBFileExist) {
+  const filePath = `${CONFIG[parameters.DIRECTORY]}/${CONFIG[parameters.DB_FILENAME]}`;
+  const doesFileExist = fs.existsSync(filePath);
+
+  if (doesFileExist) {
     return fs.readFileSync(filePath);
   } else {
     console.error(`Database file ${filePath} does not exist`);
     return null;
   }
+}
+
+function parseItemExpiry(items, cursor) {
+  let expireAt;
+  if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
+    // read expiry marker
+    cursor++;
+
+    expireAt = new Date(parseNumber(items, cursor, 8));
+
+    // move cursor to the equivalent length of the expiry value in ms (8 bytes)
+    cursor += 8;
+  } else if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
+    // read the expiry marker
+    cursor++;
+
+    expireAt = new Date(parseNumber(items, cursor, 4));
+
+    // move cursor to the equivalent length of the expiry value in s (4 bytes)
+    cursor += 4;
+  }
+
+  return { expireAt, cursor };
 }
 
 function loadDatabase() {
@@ -71,28 +94,10 @@ function loadDatabase() {
   // 01                       /* The size of the hash table that stores the expires of the keys (size encoded).
   const items = database.slice(4);
 
-  console.log('databaseKeys', items);
-
   let cursor = 0;
   while (cursor < items.length) {
-    let expireAt;
-    if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_MS) {
-      // read expiry marker
-      cursor++;
-
-      expireAt = new Date(parseNumber(items, cursor, 8));
-
-      // move cursor to the equivalent length of the expiry value in ms (8 bytes)
-      cursor += 8;
-    } else if (items[cursor] === fileMarkers.EXPIRY_TIMEOUT_S) {
-      // read the expiry marker
-      cursor++;
-
-      expireAt = new Date(parseNumber(items, cursor, 4));
-
-      // move cursor to the equivalent length of the expiry value in s (4 bytes)
-      cursor += 4;
-    }
+    const { expireAt, cursor: newCursor } = parseItemExpiry(items, cursor);
+    cursor = newCursor;
 
     // TODO handle different encoding types
     const encodingType = items[cursor];
@@ -100,25 +105,19 @@ function loadDatabase() {
     // read the encoding type
     cursor++;
 
-    const [key, keyLength] = parseString(items, cursor);
+    const { stringValue: key, stringLength: keyLength } = parseString(items, cursor);
     cursor += keyLength;
 
     // move the cursor to the start of the  value
     cursor++;
 
-    const [value, valueLength] = parseString(items, cursor);
+    const { stringValue: value, stringLength: valueLength } = parseString(items, cursor);
     cursor += valueLength;
 
     // move the cursor to the next item
     cursor++;
 
-    if (expireAt) {
-      console.log(`about to insert: ${key} - ${value} expiring at ${expireAt}`);
-      STORAGE.set(key, { name: key, value, expireAt });
-    } else {
-      console.log(`about to insert: ${key} - ${value}`);
-      STORAGE.set(key, { name: key, value });
-    }
+    STORAGE.set(key, { name: key, value, expireAt });
   }
 }
 
