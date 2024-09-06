@@ -4,6 +4,7 @@ const ping = require('./commands/ping');
 const echo = require('./commands/echo');
 const get = require('./commands/get');
 const set = require('./commands/set');
+const keys = require('./commands/keys');
 const config = require('./commands/config');
 const { CONFIG, STORAGE } = require('./global');
 
@@ -20,6 +21,7 @@ const commandProcessors = {
   [commands.GET]: get,
   [commands.SET]: set,
   [commands.CONFIG]: config,
+  [commands.KEYS]: keys,
 };
 
 function readConfig() {
@@ -27,8 +29,8 @@ function readConfig() {
 
   cliArguments.forEach((arg, index) => {
     if (arg.startsWith('--')) {
-      const key = cliArguments[index].replace('--', '').toLowerCase();
-      CONFIG[key] = cliArguments[index + 1];
+      const parameter = cliArguments[index].replace('--', '').toLowerCase();
+      CONFIG[parameter] = cliArguments[index + 1];
     }
   });
 }
@@ -56,14 +58,18 @@ function parseRespBulkString(data) {
 }
 
 function handleDataEvent(connection, data) {
-  const [command, ...args] = parseRespBulkString(data);
-  const redisCommand = command.toLowerCase();
-  const processor = commandProcessors[redisCommand];
+  try {
+    const [command, ...args] = parseRespBulkString(data);
+    const redisCommand = command.toLowerCase();
+    const processor = commandProcessors[redisCommand];
 
-  if (processor) {
-    processor.process(connection, args);
-  } else {
-    console.log(`Unknown command: ${redisCommand}`);
+    if (processor) {
+      processor.process(connection, args);
+    } else {
+      console.log(`Unknown command: ${redisCommand}`);
+    }
+  } catch (err) {
+    console.log(`Error: ${err}`);
   }
 }
 
