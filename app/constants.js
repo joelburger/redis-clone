@@ -5,6 +5,7 @@ const commands = {
   GET: 'get',
   CONFIG: 'config',
   KEYS: 'keys',
+  INFO: 'info',
 };
 
 const parameters = {

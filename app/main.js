@@ -6,6 +6,7 @@ const get = require('./commands/get');
 const set = require('./commands/set');
 const keys = require('./commands/keys');
 const config = require('./commands/config');
+const info = require('./commands/info');
 const { CONFIG, STORAGE } = require('./global');
 const { loadDatabase } = require('./database');
 
@@ -24,6 +25,7 @@ const commandProcessors = {
   [commands.SET]: set,
   [commands.CONFIG]: config,
   [commands.KEYS]: keys,
+  [commands.INFO]: info,
 };
 
 function readConfig() {
