@@ -1,5 +1,5 @@
-const { commands, cliParameters, fileMarkers } = require('../constants');
-const { validateArguments, writeString, writeArray } = require('../utils');
+const { commands } = require('../constants');
+const { validateArguments, writeArray } = require('../utils');
 const { STORAGE } = require('../global');
 
 function filterKeys(map, specifiedKey) {

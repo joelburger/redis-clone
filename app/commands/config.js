@@ -1,5 +1,5 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString, writeArray } = require('../utils');
+const { validateArguments, writeArray } = require('../utils');
 const { CONFIG } = require('../global');
 
 module.exports = {

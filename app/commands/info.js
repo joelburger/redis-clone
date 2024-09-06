@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, writeString } = require('../utils');
-const { CONFIG, SERVER_INFO } = require('../global');
+const { SERVER_INFO } = require('../global');
 
 module.exports = {
   process(connection, args) {

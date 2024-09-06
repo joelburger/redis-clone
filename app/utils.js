@@ -35,7 +35,7 @@ function generateRandomString(length = 40) {
 
 function parseRespBulkString(data) {
   return Buffer.from(data)
-    .toString('UTF-8')
+    .toString('utf-8')
     .split('\r\n')
     .filter((component) => {
       return component && !component.startsWith('*') && !component.startsWith('$');
