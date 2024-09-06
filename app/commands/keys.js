@@ -3,13 +3,9 @@ const { validateArguments, writeString, writeArray } = require('../utils');
 const { CONFIG } = require('../global');
 const fs = require('fs');
 
-function decimalToHex(decimalValue) {
-  return decimalValue.toString(16).padStart(2, '0');
-}
-
 function sliceData(binaryData, startCharacter, endCharacter) {
-  const startPosition = binaryData.findIndex((byte) => decimalToHex(byte) === startCharacter);
-  const endPosition = binaryData.findIndex((byte) => decimalToHex(byte) === endCharacter);
+  const startPosition = binaryData.findIndex((byte) => byte === startCharacter);
+  const endPosition = binaryData.findIndex((byte) => byte === endCharacter);
 
   if (startPosition > -1 && endPosition > startPosition) {
     return binaryData.slice(startPosition + 1, endPosition);

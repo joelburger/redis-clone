@@ -13,8 +13,8 @@ const parameters = {
 };
 
 const fileMarkers = {
-  START_OF_DB: 'fe',
-  END_OF_DB: 'ff',
+  START_OF_DB: 0xfe,
+  END_OF_DB: 0xff,
 };
 
 module.exports = {
