@@ -9,7 +9,7 @@ function validateResponse(response, expectedResponse) {
   }
 }
 
-async function pingMaster(client) {
+async function ping(client) {
   const response = await network.sendArray(client, ['PING']);
   validateResponse(response, 'PONG');
 }
@@ -49,10 +49,8 @@ async function connectToMaster(serverHost, serverPort) {
   if (isMaster()) return;
 
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-  let client;
-
-  client = network.connect(masterHost, masterPort);
-  await pingMaster(client);
+  const client = network.connect(masterHost, masterPort);
+  await ping(client);
   await sendListeningPort(client, serverPort);
   await sendCapability(client);
   await sendPSync(client);
