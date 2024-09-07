@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, writeString } = require('../utils');
-const { SERVER_INFO } = require('../global');
+const { CONFIG } = require('../global');
 
 module.exports = {
   process(connection, args) {
@@ -8,10 +8,10 @@ module.exports = {
 
     const [category] = args;
 
-    const output = [`role:${SERVER_INFO.role}`];
+    const output = [`role:${CONFIG.serverInfo.role}`];
 
-    if (category === 'replication' && SERVER_INFO.replication) {
-      Object.entries(SERVER_INFO.replication)?.forEach(([key, value]) => output.push(`${key}:${value}`));
+    if (category === 'replication' && CONFIG.serverInfo.replication) {
+      Object.entries(CONFIG.serverInfo.replication)?.forEach(([key, value]) => output.push(`${key}:${value}`));
     }
 
     writeString(connection, output);

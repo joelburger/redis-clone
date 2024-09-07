@@ -6,6 +6,7 @@ const set = require('./commands/set');
 const config = require('./commands/config');
 const keys = require('./commands/keys');
 const info = require('./commands/info');
+const replconf = require('./commands/replconf');
 
 module.exports = {
   [commands.PING]: ping,
@@ -15,4 +16,5 @@ module.exports = {
   [commands.CONFIG]: config,
   [commands.KEYS]: keys,
   [commands.INFO]: info,
+  [commands.REPLICA_CONFIG]: replconf,
 };

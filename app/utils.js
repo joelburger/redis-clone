@@ -61,11 +61,11 @@ function sliceData(buffer, startCharacter, endCharacter) {
   return buffer;
 }
 
-function cleanString(stringValue) {
+function cleanString(stringValue, subChar = '') {
   if (!stringValue) {
     return '';
   }
-  return stringValue.replace(/[\r\n]/g, '');
+  return stringValue.replace(/[\r\n]/g, subChar);
 }
 
 function parseNumber(buffer, cursor, numberOfBytes) {
