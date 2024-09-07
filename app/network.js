@@ -1,34 +1,56 @@
 const net = require('net');
-const { parseString, cleanString, writeArray, constructArray } = require('./utils');
+const { parseString, cleanString, constructArray } = require('./utils');
 
-async function send(host, port, stringValues) {
+function connect(host, port) {
+  const client = new net.Socket();
+
+  client.on('close', () => {
+    console.log('Connection closed');
+  });
+
+  client.on('error', (err) => {
+    console.error(`Connection error: ${err.message}`);
+  });
+
+  client.connect(port, host, () => {
+    console.log(`Connected to ${host}:${port}`);
+  });
+
+  return client;
+}
+
+async function sendArray(client, stringValues) {
   return new Promise((resolve, reject) => {
-    const client = new net.Socket();
-
-    client.connect(port, host, () => {
-      console.log(`Connected to ${host}:${port}`);
-      const payload = constructArray(stringValues);
-      client.write(Buffer.from(payload));
+    const payload = constructArray(stringValues);
+    client.write(payload, (err) => {
+      if (err) {
+        return reject(err);
+      }
     });
 
-    client.on('data', (buffer) => {
-      console.log(`Received: ${buffer}`);
-      client.destroy(); // Close the connection after receiving the response
-      const { stringValue } = parseString(buffer);
-      resolve(cleanString(stringValue));
+    client.once('data', (buffer) => {
+      try {
+        const { stringValue } = parseString(buffer);
+        resolve(cleanString(stringValue));
+      } catch (err) {
+        reject(err);
+      }
     });
 
-    client.on('close', () => {
-      console.log('Connection closed');
-    });
-
-    client.on('error', (err) => {
-      console.error(`Connection error: ${err.message}`);
+    client.once('error', (err) => {
       reject(err);
     });
   });
 }
 
+function disconnect(client) {
+  if (client) {
+    client.destroy();
+  }
+}
+
 module.exports = {
-  send,
+  connect,
+  disconnect,
+  sendArray,
 };

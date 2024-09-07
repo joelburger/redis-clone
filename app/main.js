@@ -1,10 +1,10 @@
 const net = require('net');
 const { CONFIG } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
-const { generateRandomString, parseRespBulkString, constructArray, parseString, cleanString } = require('./utils');
+const { generateRandomString, parseRespBulkString } = require('./utils');
 const { cliParameters } = require('./constants');
 const processors = require('./processors');
-const { send } = require('./network');
+const { doHandshake } = require('./replica');
 
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
@@ -56,37 +56,6 @@ function startServer(serverHost, serverPort) {
   });
 }
 
-async function pingMaster(masterHost, masterPort) {
-  const response = await send(masterHost, masterPort, ['PING']);
-  if (response !== 'PONG') {
-    throw new Error(`Invalid handshake #1 response from master: ${response}`);
-  }
-}
-
-async function sendListeningPort(masterHost, masterPort, listeningPort) {
-  const response = await send(masterHost, masterPort, ['REPLCONF', 'listening-port', listeningPort]);
-  if (response !== 'OK') {
-    throw new Error(`Invalid handshake #2 response from master: ${response}`);
-  }
-}
-
-async function sendCapability(masterHost, masterPort) {
-  const response = await send(masterHost, masterPort, ['REPLCONF', 'capa', 'psync2']);
-  if (response !== 'OK') {
-    throw new Error(`Invalid handshake #3 response from master: ${data}`);
-  }
-}
-
-async function doHandshake(serverHost, serverPort) {
-  if (CONFIG.serverInfo.role === 'master') {
-    return;
-  }
-  const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-  await pingMaster(masterHost, masterPort);
-  await sendListeningPort(masterHost, masterPort, serverPort);
-  await sendCapability(masterHost, masterPort);
-}
-
 async function initialise() {
   setInterval(expireItems, 10);
   parseCliParameters();
@@ -97,7 +66,6 @@ async function initialise() {
   const serverPort = CONFIG[cliParameters.PORT] || 6379;
 
   startServer(serverHost, serverPort);
-
   await doHandshake(serverHost, serverPort);
 }
 
