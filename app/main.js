@@ -6,6 +6,9 @@ const { cliParameters } = require('./constants');
 const processors = require('./processors');
 const { doHandshake } = require('./replica');
 
+const DEFAULT_HOST = 'localhost';
+const DEFAULT_PORT = 6379;
+
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
 
@@ -62,8 +65,8 @@ async function initialise() {
   setServerInfo();
   loadDatabase();
 
-  const serverHost = 'localhost';
-  const serverPort = CONFIG[cliParameters.PORT] || 6379;
+  const serverHost = DEFAULT_HOST;
+  const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
 
   startServer(serverHost, serverPort);
   await doHandshake(serverHost, serverPort);
