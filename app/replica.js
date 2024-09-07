@@ -1,41 +1,52 @@
 const network = require('./network');
-const { CONFIG } = require('./global');
+const { CONFIG, REPLICAS } = require('./global');
 const { cliParameters } = require('./constants');
+const { writeArray } = require('./utils');
+
+function validateResponse(response, expectedResponse) {
+  if (!new RegExp(`^${expectedResponse}$`).test(response)) {
+    throw new Error(`Unexpected response: received "${response}", but expected "${expectedResponse}".`);
+  }
+}
 
 async function pingMaster(client) {
   const response = await network.sendArray(client, ['PING']);
-  if (response !== 'PONG') {
-    throw new Error(`Invalid handshake  from master: ${response}`);
-  }
+  validateResponse(response, 'PONG');
 }
 
 async function sendListeningPort(client, listeningPort) {
   const response = await network.sendArray(client, ['REPLCONF', 'listening-port', listeningPort]);
-  if (response !== 'OK') {
-    throw new Error(`Invalid handshake response from master: ${response}`);
-  }
+  validateResponse(response, 'OK');
 }
 
 async function sendCapability(client) {
   const response = await network.sendArray(client, ['REPLCONF', 'capa', 'psync2']);
-  if (response !== 'OK') {
-    throw new Error(`Invalid handshake response from master: ${response}`);
-  }
+  validateResponse(response, 'OK');
 }
 
 async function sendPSync(client) {
   const response = await network.sendArray(client, ['PSYNC', '?', '-1']);
-  if (!response.startsWith('FULLRESYNC')) {
-    throw new Error(`Invalid handshake  response from master: ${response}`);
-  }
+  validateResponse(response, 'FULLRESYNC.+');
+}
+
+function isMaster() {
+  return CONFIG.serverInfo.role === 'master';
 }
 
 function isReplica() {
   return CONFIG.serverInfo.role === 'slave';
 }
 
-async function establishConnection(serverHost, serverPort) {
-  if (!isReplica()) return;
+async function syncKeyWithReplicas(key, value) {
+  if (isReplica()) return;
+
+  REPLICAS.forEach((connection) => {
+    writeArray(connection, ['SET', key, value]);
+  });
+}
+
+async function connectToMaster(serverHost, serverPort) {
+  if (isMaster()) return;
 
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
   let client;
@@ -48,6 +59,8 @@ async function establishConnection(serverHost, serverPort) {
 }
 
 module.exports = {
-  establishConnection,
+  connectToMaster,
+  syncKeyWithReplicas,
   isReplica,
+  isMaster,
 };

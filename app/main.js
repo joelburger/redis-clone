@@ -4,10 +4,11 @@ const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, parseRespBulkString } = require('./utils');
 const { cliParameters } = require('./constants');
 const processors = require('./processors');
-const { establishConnection, isReplica } = require('./replica');
+const { connectToMaster, isReplica } = require('./replica');
 
 const DEFAULT_HOST = 'localhost';
 const DEFAULT_PORT = 6379;
+const EXPIRE_INTERVAL = 10;
 
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
@@ -46,9 +47,7 @@ function handleDataEvent(connection, data) {
 
 function startServer(serverHost, serverPort) {
   const server = net.createServer((connection) => {
-    connection.on('data', (data) => {
-      handleDataEvent(connection, data); // Send a response back to the client
-    });
+    connection.on('data', (data) => handleDataEvent(connection, data));
     connection.on('error', (err) => console.log('Connection error', err));
   });
 
@@ -60,7 +59,7 @@ function startServer(serverHost, serverPort) {
 }
 
 async function initialise() {
-  setInterval(expireItems, 10);
+  setInterval(expireItems, EXPIRE_INTERVAL);
   parseCliParameters();
   setServerInfo();
   loadDatabase();
@@ -71,7 +70,7 @@ async function initialise() {
   startServer(serverHost, serverPort);
 
   if (isReplica()) {
-    await establishConnection(serverHost, serverPort);
+    await connectToMaster(serverHost, serverPort);
   }
 }
 
