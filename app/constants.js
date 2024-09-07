@@ -7,6 +7,7 @@ const commands = {
   KEYS: 'keys',
   INFO: 'info',
   REPLICA_CONFIG: 'replconf',
+  PSYNC: 'psync',
 };
 
 const cliParameters = {

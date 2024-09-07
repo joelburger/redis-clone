@@ -7,6 +7,7 @@ const config = require('./commands/config');
 const keys = require('./commands/keys');
 const info = require('./commands/info');
 const replconf = require('./commands/replconf');
+const psync = require('./commands/psync');
 
 module.exports = {
   [commands.PING]: ping,
@@ -17,4 +18,5 @@ module.exports = {
   [commands.KEYS]: keys,
   [commands.INFO]: info,
   [commands.REPLICA_CONFIG]: replconf,
+  [commands.PSYNC]: psync,
 };
