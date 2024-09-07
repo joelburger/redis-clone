@@ -11,12 +11,19 @@ const { sliceData, parseString, parseNumber } = require('./utils');
 // 01                       /* The size of the hash table that stores the expires of the keys (size encoded).
 const DB_FILE_START_OFFSET = 4;
 
-function readDatabaseFile() {
+function constructFilePathFromConfig() {
   if (!CONFIG[cliParameters.DIRECTORY] || !CONFIG[cliParameters.DB_FILENAME]) {
     return null;
   }
 
-  const filePath = `${CONFIG[cliParameters.DIRECTORY]}/${CONFIG[cliParameters.DB_FILENAME]}`;
+  return `${CONFIG[cliParameters.DIRECTORY]}/${CONFIG[cliParameters.DB_FILENAME]}`;
+}
+
+function readDatabaseFile(filePath = constructFilePathFromConfig()) {
+  if (!filePath) {
+    return null;
+  }
+
   const doesFileExist = fs.existsSync(filePath);
 
   if (doesFileExist) {
@@ -95,4 +102,5 @@ function expireItems() {
 module.exports = {
   loadDatabase,
   expireItems,
+  readDatabaseFile,
 };
