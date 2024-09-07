@@ -1,7 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, writeString } = require('../utils');
-const { CONFIG } = require('../global');
-const { readDatabaseFile } = require('../database');
+const { CONFIG, REPLICAS } = require('../global');
 
 function syncFile(connection) {
   const base64 =
@@ -18,5 +17,7 @@ module.exports = {
     const offset = CONFIG.serverInfo.replication['master_repl_offset'];
     writeString(connection, `FULLRESYNC ${replicaId} ${offset}`);
     syncFile(connection);
+
+    REPLICAS.push(connection);
   },
 };

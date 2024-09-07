@@ -4,7 +4,7 @@ const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, parseRespBulkString } = require('./utils');
 const { cliParameters } = require('./constants');
 const processors = require('./processors');
-const { doHandshake } = require('./replica');
+const { establishConnection, isReplica } = require('./replica');
 
 const DEFAULT_HOST = 'localhost';
 const DEFAULT_PORT = 6379;
@@ -69,7 +69,10 @@ async function initialise() {
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
 
   startServer(serverHost, serverPort);
-  await doHandshake(serverHost, serverPort);
+
+  if (isReplica()) {
+    await establishConnection(serverHost, serverPort);
+  }
 }
 
 initialise().catch((err) => {

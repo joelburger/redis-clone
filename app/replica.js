@@ -30,23 +30,24 @@ async function sendPSync(client) {
   }
 }
 
-async function doHandshake(serverHost, serverPort) {
-  if (CONFIG.serverInfo.role === 'master') {
-    return;
-  }
+function isReplica() {
+  return CONFIG.serverInfo.role === 'slave';
+}
+
+async function establishConnection(serverHost, serverPort) {
+  if (!isReplica()) return;
+
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
   let client;
-  try {
-    client = network.connect(masterHost, masterPort);
-    await pingMaster(client);
-    await sendListeningPort(client, serverPort);
-    await sendCapability(client);
-    await sendPSync(client);
-  } finally {
-    network.disconnect(client);
-  }
+
+  client = network.connect(masterHost, masterPort);
+  await pingMaster(client);
+  await sendListeningPort(client, serverPort);
+  await sendCapability(client);
+  await sendPSync(client);
 }
 
 module.exports = {
-  doHandshake,
+  establishConnection,
+  isReplica,
 };
