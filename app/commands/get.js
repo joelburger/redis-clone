@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString, NULL_VALUE } = require('../utils');
+const { validateArguments } = require('../helpers/common');
 const { STORAGE } = require('../global');
+const { constructSimpleString, NULL_VALUE } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -11,7 +12,7 @@ module.exports = {
 
     if (STORAGE.has(specifiedKey)) {
       const matched = STORAGE.get(specifiedKey);
-      writeString(socket, matched.value);
+      socket.write(constructSimpleString(matched.value));
     } else {
       socket.write(NULL_VALUE);
     }

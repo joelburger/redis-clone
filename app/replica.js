@@ -1,66 +1,49 @@
-const net = require('net');
 const { CONFIG } = require('./global');
 const { cliParameters } = require('./constants');
-const { writeArrayAsync, isMaster } = require('./utils');
-const { handleDataEvent } = require('./processors');
+const { isMaster } = require('./helpers/common');
+const { createSocket, sendMessage } = require('./helpers/network');
+const { constructArray, removeTerminators } = require('./helpers/resp');
 
 function validateResponse(response, expectedResponse) {
-  console.log(`Validating response: ${response}`);
+  const cleanedResponse = removeTerminators(response);
 
-  if (!new RegExp(`^${expectedResponse}$`).test(response)) {
-    throw new Error(`Unexpected response: received "${response}", but expected "${expectedResponse}".`);
+  console.log(`Validating response: ${cleanedResponse}`);
+
+  if (!new RegExp(`^${expectedResponse}$`).test(cleanedResponse)) {
+    throw new Error(`Unexpected response: received "${cleanedResponse}", but expected "${expectedResponse}".`);
   }
 }
 
-async function ping(client) {
-  const response = await writeArrayAsync(client, ['PING']);
+async function ping(socket) {
+  const response = await sendMessage(socket, constructArray(['PING']));
   validateResponse(response, 'PONG');
 }
 
-async function sendListeningPort(client, listeningPort) {
-  const response = await writeArrayAsync(client, ['REPLCONF', 'listening-port', listeningPort]);
+async function sendListeningPort(socket, listeningPort) {
+  const response = await sendMessage(socket, constructArray(['REPLCONF', 'listening-port', listeningPort]));
   validateResponse(response, 'OK');
 }
 
-async function sendCapability(client) {
-  const response = await writeArrayAsync(client, ['REPLCONF', 'capa', 'psync2']);
+async function sendCapability(socket) {
+  const response = await sendMessage(socket, constructArray(['REPLCONF', 'capa', 'psync2']));
   validateResponse(response, 'OK');
 }
 
-async function sendPSync(client) {
-  const response = await writeArrayAsync(client, ['PSYNC', '?', '-1']);
+async function sendPSync(socket) {
+  const response = await sendMessage(socket, constructArray(['PSYNC', '?', '-1']));
   validateResponse(response, 'FULLRESYNC.+');
 }
 
-function connect(host, port) {
-  const socket = new net.Socket();
-
-  socket.on('data', (data) => handleDataEvent(socket, data));
-
-  socket.on('close', () => {
-    console.log('Connection closed');
-  });
-
-  socket.on('error', (err) => {
-    console.error(`Connection error: ${err.message}`);
-  });
-
-  socket.connect(port, host, () => {
-    console.log(`Connected to ${host}:${port}`);
-  });
-
-  return socket;
-}
-
-async function handshake(serverHost, serverPort) {
+async function handshake(serverHost, serverPort, dataEventHandler) {
   if (isMaster()) return;
 
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-  const client = connect(masterHost, masterPort);
-  await ping(client);
-  await sendListeningPort(client, serverPort);
-  await sendCapability(client);
-  await sendPSync(client);
+  const socket = createSocket(masterPort, masterHost, dataEventHandler);
+  socket.connect(masterPort, masterHost);
+  await ping(socket);
+  await sendListeningPort(socket, serverPort);
+  await sendCapability(socket);
+  await sendPSync(socket);
 }
 
 module.exports = {

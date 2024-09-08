@@ -24,8 +24,15 @@ const fileMarkers = {
   EXPIRY_TIMEOUT_S: 0xfd,
 };
 
+const DEFAULT_HOST = 'localhost';
+const DEFAULT_PORT = 6379;
+const EXPIRE_INTERVAL = 10;
+
 module.exports = {
   commands,
   cliParameters: cliParameters,
   fileMarkers,
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  EXPIRE_INTERVAL,
 };

@@ -1,9 +1,10 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString } = require('../utils');
+const { validateArguments } = require('../helpers/common');
+const { constructSimpleString } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
     validateArguments(commands.PING, args, 0);
-    writeString(socket, 'PONG');
+    socket.write(constructSimpleString('PONG'));
   },
 };

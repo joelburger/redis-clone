@@ -1,19 +1,16 @@
-const net = require('net');
 const { CONFIG } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
-const { generateRandomString, isReplica } = require('./utils');
-const { cliParameters } = require('./constants');
+const { generateRandomString, isReplica, isMaster } = require('./helpers/common');
+const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL } = require('./constants');
 const { handshake } = require('./replica');
-const { handleDataEvent } = require('./processors');
-
-const DEFAULT_HOST = 'localhost';
-const DEFAULT_PORT = 6379;
-const EXPIRE_INTERVAL = 10;
+const processors = require('./processors');
+const { createServer } = require('./helpers/network');
+const { parseArrayBulkString } = require('./helpers/resp');
 
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
 
-  if (CONFIG.serverInfo.role === 'master') {
+  if (isMaster()) {
     CONFIG.serverInfo.replication = { master_replid: generateRandomString(), master_repl_offset: 0 };
   }
 }
@@ -29,20 +26,24 @@ function parseCliParameters() {
   });
 }
 
-function startServer() {
-  const serverHost = DEFAULT_HOST;
-  const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
+function handleDataEvent(socket, data) {
+  try {
+    const stringData = data.toString('utf-8');
+    const commandGroups = parseArrayBulkString(stringData);
+    commandGroups.forEach((commandGroup) => {
+      console.log(`Incoming command: ${commandGroup}`);
+      const [command, ...args] = commandGroup;
+      const processor = processors[command.toLowerCase()];
 
-  const server = net.createServer((socket) => {
-    socket.on('data', (data) => handleDataEvent(socket, data));
-    socket.on('error', (err) => console.log('Socket error', err));
-  });
-
-  server.on('error', (err) => console.log('Server error', err));
-
-  server.listen(serverPort, serverHost, () => {
-    console.log(`Listening on ${server.address().address}:${server.address().port}`);
-  });
+      if (processor) {
+        processor.process(socket, args);
+      } else {
+        console.log(`Unknown command: ${command}`);
+      }
+    });
+  } catch (err) {
+    console.log('Fatal error:', err);
+  }
 }
 
 async function initialise() {
@@ -54,9 +55,11 @@ async function initialise() {
   const serverHost = DEFAULT_HOST;
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
 
-  startServer(serverHost, serverPort);
+  const server = createServer(serverHost, serverPort, handleDataEvent);
+  server.listen(serverPort, serverHost);
+
   if (isReplica()) {
-    handshake(serverHost, serverPort).then(() => console.log('Successful handshake with master'));
+    handshake(serverHost, serverPort, handleDataEvent).then(() => console.log('Successful handshake with master'));
   }
 }
 

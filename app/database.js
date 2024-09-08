@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { fileMarkers, cliParameters } = require('./constants');
 const { CONFIG, STORAGE } = require('./global');
-const { sliceData, parseString, parseNumber } = require('./utils');
+const { readUnixTime, sliceData, readString } = require('./helpers/buffer');
 
 // First 4 bytes from DB file are ignored
 // e.g.
@@ -40,7 +40,7 @@ function parseItemExpiry(items, cursor) {
     // read expiry marker
     cursor++;
 
-    expireAt = new Date(parseNumber(items, cursor, 8));
+    expireAt = new Date(readUnixTime(items, cursor, 8));
 
     // move cursor to the equivalent length of the expiry value in ms (8 bytes)
     cursor += 8;
@@ -48,7 +48,7 @@ function parseItemExpiry(items, cursor) {
     // read the expiry marker
     cursor++;
 
-    expireAt = new Date(parseNumber(items, cursor, 4));
+    expireAt = new Date(readUnixTime(items, cursor, 4));
 
     // move cursor to the equivalent length of the expiry value in s (4 bytes)
     cursor += 4;
@@ -78,10 +78,10 @@ function loadDatabase() {
     const encodingType = items[cursor];
     cursor++;
 
-    const { stringValue: key, cursor: updatedCursorFromKey } = parseString(items, cursor);
+    const { stringValue: key, cursor: updatedCursorFromKey } = readString(items, cursor);
     cursor = updatedCursorFromKey;
 
-    const { stringValue: value, cursor: updatedCursorFromValue } = parseString(items, cursor);
+    const { stringValue: value, cursor: updatedCursorFromValue } = readString(items, cursor);
     cursor = updatedCursorFromValue;
 
     STORAGE.set(key, { name: key, value, expireAt });

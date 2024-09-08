@@ -1,5 +1,6 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString } = require('../utils');
+const { validateArguments } = require('../helpers/common');
+const { constructSimpleString } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -9,6 +10,6 @@ module.exports = {
       console.log(`Adding replica on port: ${configValue}`);
       //TODO
     }
-    writeString(socket, 'OK');
+    socket.write(constructSimpleString('OK'));
   },
 };

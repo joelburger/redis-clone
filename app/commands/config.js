@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
-const { validateArguments, writeArray } = require('../utils');
+const { validateArguments } = require('../helpers/common');
 const { CONFIG } = require('../global');
+const { constructArray } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -8,7 +9,7 @@ module.exports = {
     const [subCommand, key] = args;
     if (subCommand.toLowerCase() === 'get') {
       const configValue = CONFIG[key.toLowerCase()];
-      writeArray(socket, [key, configValue]);
+      socket.write(constructArray([key, configValue]));
     } else {
       throw new Error(`Invalid subcommand: ${subCommand}`);
     }

@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
-const { validateArguments, writeArray } = require('../utils');
+const { validateArguments } = require('../helpers/common');
 const { STORAGE } = require('../global');
+const { constructArray } = require('../helpers/resp');
 
 function filterKeys(map, specifiedKey) {
   if (specifiedKey) {
@@ -12,10 +13,8 @@ function filterKeys(map, specifiedKey) {
 module.exports = {
   process(socket, args) {
     validateArguments(commands.KEYS, args, 0, 1);
-
     const [specifiedKey] = args;
-    const output = filterKeys(STORAGE, specifiedKey);
-
-    writeArray(socket, Array.from(output));
+    const result = filterKeys(STORAGE, specifiedKey);
+    socket.write(constructArray(result));
   },
 };

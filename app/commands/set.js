@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString, writeArray, isMaster } = require('../utils');
+const { validateArguments, isMaster } = require('../helpers/common');
 const { STORAGE, REPLICAS } = require('../global');
+const { constructSimpleString, constructArray } = require('../helpers/resp');
 
 function createItem(key, value, expiryArgument, expiresIn) {
   if (expiryArgument?.toLowerCase() === 'px') {
@@ -21,10 +22,10 @@ module.exports = {
     const [key, value, expiryArgument, expiresIn] = args;
     const item = createItem(key, value, expiryArgument, expiresIn);
     STORAGE.set(key, item);
-    writeString(socket, 'OK');
+    socket.write(constructSimpleString('OK'));
 
     if (isMaster()) {
-      REPLICAS.forEach((replicaSocket) => writeArray(replicaSocket, ['SET', key, value]));
+      REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['SET', key, value])));
     }
   },
 };
