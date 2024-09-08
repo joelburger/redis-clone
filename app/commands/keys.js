@@ -10,12 +10,12 @@ function filterKeys(map, specifiedKey) {
 }
 
 module.exports = {
-  process(connection, args) {
+  process(socket, args) {
     validateArguments(commands.KEYS, args, 0, 1);
 
     const [specifiedKey] = args;
     const output = filterKeys(STORAGE, specifiedKey);
 
-    writeArray(connection, Array.from(output));
+    writeArray(socket, Array.from(output));
   },
 };

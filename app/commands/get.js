@@ -3,7 +3,7 @@ const { validateArguments, writeString, NULL_VALUE } = require('../utils');
 const { STORAGE } = require('../global');
 
 module.exports = {
-  process(connection, args) {
+  process(socket, args) {
     validateArguments(commands.GET, args, 1);
     const [specifiedKey] = args;
 
@@ -11,9 +11,9 @@ module.exports = {
 
     if (STORAGE.has(specifiedKey)) {
       const matched = STORAGE.get(specifiedKey);
-      writeString(connection, matched.value);
+      writeString(socket, matched.value);
     } else {
-      connection.write(NULL_VALUE);
+      socket.write(NULL_VALUE);
     }
   },
 };

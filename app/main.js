@@ -29,14 +29,14 @@ function parseCliParameters() {
   });
 }
 
-function handleDataEvent(connection, data) {
+function handleDataEvent(socket, data) {
   try {
     const [command, ...args] = parseRespBulkString(data);
     const redisCommand = command.toLowerCase();
     const processor = processors[redisCommand];
 
     if (processor) {
-      processor.process(connection, args);
+      processor.process(socket, args);
     } else {
       console.log(`Unknown command: ${redisCommand}`);
     }
@@ -45,10 +45,13 @@ function handleDataEvent(connection, data) {
   }
 }
 
-function startServer(serverHost, serverPort) {
-  const server = net.createServer((connection) => {
-    connection.on('data', (data) => handleDataEvent(connection, data));
-    connection.on('error', (err) => console.log('Connection error', err));
+function startServer() {
+  const serverHost = DEFAULT_HOST;
+  const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
+
+  const server = net.createServer((socket) => {
+    socket.on('data', (data) => handleDataEvent(socket, data));
+    socket.on('error', (err) => console.log('Socket error', err));
   });
 
   server.on('error', (err) => console.log('Server error', err));
@@ -63,14 +66,13 @@ async function initialise() {
   parseCliParameters();
   setServerInfo();
   loadDatabase();
+  startServer();
 
+  // TODO Fix this
   const serverHost = DEFAULT_HOST;
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
-
-  startServer(serverHost, serverPort);
-
   if (isReplica()) {
-    await connectToMaster(serverHost, serverPort);
+    connectToMaster(serverHost, serverPort).then((r) => console.log('Connection established with master'));
   }
 }
 

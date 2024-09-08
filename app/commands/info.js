@@ -3,7 +3,7 @@ const { validateArguments, writeString } = require('../utils');
 const { CONFIG } = require('../global');
 
 module.exports = {
-  process(connection, args) {
+  process(socket, args) {
     validateArguments(commands.INFO, args, 0, 1);
 
     const [category] = args;
@@ -14,6 +14,6 @@ module.exports = {
       Object.entries(CONFIG.serverInfo.replication)?.forEach(([key, value]) => output.push(`${key}:${value}`));
     }
 
-    writeString(connection, output);
+    writeString(socket, output);
   },
 };

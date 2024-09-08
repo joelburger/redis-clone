@@ -22,12 +22,12 @@ function constructSimpleString(stringValue) {
   return `+${stringValue}\r\n`;
 }
 
-function writeString(connection, stringValue) {
-  connection.write(constructSimpleString(stringValue));
+function writeString(socket, stringValue) {
+  socket.write(constructSimpleString(stringValue));
 }
 
-function writeArray(connection, stringValues) {
-  connection.write(constructArray(stringValues));
+function writeArray(socket, stringValues) {
+  socket.write(constructArray(stringValues));
 }
 
 function generateRandomString(length = 40) {

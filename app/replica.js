@@ -40,8 +40,8 @@ function isReplica() {
 async function syncKeyWithReplicas(key, value) {
   if (isReplica()) return;
 
-  REPLICAS.forEach((connection) => {
-    writeArray(connection, ['SET', key, value]);
+  REPLICAS.forEach((socket) => {
+    writeArray(socket, ['SET', key, value]);
   });
 }
 

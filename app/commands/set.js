@@ -17,12 +17,12 @@ function createItem(key, value, expiryArgument, expiresIn) {
 }
 
 module.exports = {
-  process(connection, args) {
+  process(socket, args) {
     validateArguments(commands.SET, args, 2, 4);
     const [key, value, expiryArgument, expiresIn] = args;
     const item = createItem(key, value, expiryArgument, expiresIn);
     STORAGE.set(key, item);
-    writeString(connection, 'OK');
+    writeString(socket, 'OK');
 
     if (isMaster()) {
       syncKeyWithReplicas(key, value).then(() => console.log(`Synchronised ${key} with replicas`));
