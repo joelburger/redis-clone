@@ -1,7 +1,6 @@
 const { commands } = require('../constants');
-const { validateArguments, writeString } = require('../utils');
-const { STORAGE } = require('../global');
-const { syncKeyWithReplicas, isMaster } = require('../replica');
+const { validateArguments, writeString, writeArray, isMaster } = require('../utils');
+const { STORAGE, REPLICAS } = require('../global');
 
 function createItem(key, value, expiryArgument, expiresIn) {
   if (expiryArgument?.toLowerCase() === 'px') {
@@ -25,7 +24,7 @@ module.exports = {
     writeString(socket, 'OK');
 
     if (isMaster()) {
-      syncKeyWithReplicas(key, value).then(() => console.log(`Synchronised ${key} with replicas`));
+      REPLICAS.forEach((replicaSocket) => writeArray(replicaSocket, ['SET', key, value]));
     }
   },
 };

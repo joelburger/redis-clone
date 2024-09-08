@@ -8,8 +8,9 @@ const keys = require('./commands/keys');
 const info = require('./commands/info');
 const replconf = require('./commands/replconf');
 const psync = require('./commands/psync');
+const { parseArrayBulkString } = require('./utils');
 
-module.exports = {
+const processors = {
   [commands.PING]: ping,
   [commands.ECHO]: echo,
   [commands.GET]: get,
@@ -19,4 +20,29 @@ module.exports = {
   [commands.INFO]: info,
   [commands.REPLICA_CONFIG]: replconf,
   [commands.PSYNC]: psync,
+};
+
+function handleDataEvent(socket, data) {
+  try {
+    const stringData = data.toString('utf-8');
+    const commandGroups = parseArrayBulkString(stringData);
+    commandGroups.forEach((commandGroup) => {
+      console.log(`Incoming command: ${commandGroup}`);
+      const [command, ...args] = commandGroup;
+      const redisCommand = command.toLowerCase();
+      const processor = processors[redisCommand];
+
+      if (processor) {
+        processor.process(socket, args);
+      } else {
+        console.log(`Unknown command: ${redisCommand}`);
+      }
+    });
+  } catch (err) {
+    console.log('Fatal error:', err);
+  }
+}
+
+module.exports = {
+  handleDataEvent,
 };

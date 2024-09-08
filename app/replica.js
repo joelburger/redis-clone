@@ -1,7 +1,8 @@
-const network = require('./network');
-const { CONFIG, REPLICAS } = require('./global');
+const net = require('net');
+const { CONFIG } = require('./global');
 const { cliParameters } = require('./constants');
-const { writeArray } = require('./utils');
+const { writeArrayAsync, isMaster } = require('./utils');
+const { handleDataEvent } = require('./processors');
 
 function validateResponse(response, expectedResponse) {
   console.log(`Validating response: ${response}`);
@@ -12,46 +13,50 @@ function validateResponse(response, expectedResponse) {
 }
 
 async function ping(client) {
-  const response = await network.sendArray(client, ['PING']);
+  const response = await writeArrayAsync(client, ['PING']);
   validateResponse(response, 'PONG');
 }
 
 async function sendListeningPort(client, listeningPort) {
-  const response = await network.sendArray(client, ['REPLCONF', 'listening-port', listeningPort]);
+  const response = await writeArrayAsync(client, ['REPLCONF', 'listening-port', listeningPort]);
   validateResponse(response, 'OK');
 }
 
 async function sendCapability(client) {
-  const response = await network.sendArray(client, ['REPLCONF', 'capa', 'psync2']);
+  const response = await writeArrayAsync(client, ['REPLCONF', 'capa', 'psync2']);
   validateResponse(response, 'OK');
 }
 
 async function sendPSync(client) {
-  const response = await network.sendArray(client, ['PSYNC', '?', '-1']);
+  const response = await writeArrayAsync(client, ['PSYNC', '?', '-1']);
   validateResponse(response, 'FULLRESYNC.+');
 }
 
-function isMaster() {
-  return CONFIG.serverInfo.role === 'master';
-}
+function connect(host, port) {
+  const socket = new net.Socket();
 
-function isReplica() {
-  return CONFIG.serverInfo.role === 'slave';
-}
+  socket.on('data', (data) => handleDataEvent(socket, data));
 
-async function syncKeyWithReplicas(key, value) {
-  if (isReplica()) return;
-
-  REPLICAS.forEach((socket) => {
-    writeArray(socket, ['SET', key, value]);
+  socket.on('close', () => {
+    console.log('Connection closed');
   });
+
+  socket.on('error', (err) => {
+    console.error(`Connection error: ${err.message}`);
+  });
+
+  socket.connect(port, host, () => {
+    console.log(`Connected to ${host}:${port}`);
+  });
+
+  return socket;
 }
 
-async function connectToMaster(serverHost, serverPort) {
+async function handshake(serverHost, serverPort) {
   if (isMaster()) return;
 
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-  const client = network.connect(masterHost, masterPort);
+  const client = connect(masterHost, masterPort);
   await ping(client);
   await sendListeningPort(client, serverPort);
   await sendCapability(client);
@@ -59,8 +64,5 @@ async function connectToMaster(serverHost, serverPort) {
 }
 
 module.exports = {
-  connectToMaster,
-  syncKeyWithReplicas,
-  isReplica,
-  isMaster,
+  handshake,
 };

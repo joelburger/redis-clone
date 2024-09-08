@@ -1,3 +1,4 @@
+const { CONFIG } = require('./global');
 const NULL_VALUE = '$-1\r\n';
 
 function validateArguments(commandName, args, minCount, maxCount = minCount) {
@@ -30,6 +31,32 @@ function writeArray(socket, stringValues) {
   socket.write(constructArray(stringValues));
 }
 
+async function writeArrayAsync(socket, stringValues) {
+  return new Promise((resolve, reject) => {
+    const payload = constructArray(stringValues);
+    socket.write(payload, (err) => {
+      if (err) {
+        return reject(err);
+      }
+    });
+
+    socket.once('data', (buffer) => {
+      try {
+        const { stringValue } = parseString(buffer);
+        resolve(cleanString(stringValue));
+      } catch (err) {
+        console.log('Error:', err);
+        reject(err);
+      }
+    });
+
+    socket.once('error', (err) => {
+      console.log('Error:', err);
+      reject(err);
+    });
+  });
+}
+
 function generateRandomString(length = 40) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
@@ -42,15 +69,12 @@ function generateRandomString(length = 40) {
   return result;
 }
 
-function parseRespBulkString(data) {
-  '*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\n123\r\n*3\r\n$3\r\nSET\r\n$3\r\nbar\r\n$3\r\n456\r\n*3\r\n$3\r\nSET\r\n$3\r\nbaz\r\n$3\r\n789\r\n';
-
-  return Buffer.from(data)
-    .toString('utf-8')
-    .split('\r\n')
-    .filter((component) => {
-      return component && !component.startsWith('*') && !component.startsWith('$');
-    });
+function parseArrayBulkString(data) {
+  const regex = /\*(\d+)\r\n(\$\d+\r\n.+\r\n)+/g;
+  const matches = data.match(regex) || [];
+  return matches.map((match) =>
+    match.split('\r\n').filter((component) => component && !component.startsWith('*') && !component.startsWith('$')),
+  );
 }
 
 function sliceData(buffer, startCharacter, endCharacter) {
@@ -99,17 +123,25 @@ function parseString(buffer, cursor = 0) {
   return { stringValue, cursor };
 }
 
+function isMaster() {
+  return CONFIG.serverInfo.role === 'master';
+}
+
+function isReplica() {
+  return CONFIG.serverInfo.role === 'slave';
+}
+
 module.exports = {
   validateArguments,
-  constructArray,
-  constructSimpleString,
-  cleanString,
   writeString,
   writeArray,
+  writeArrayAsync,
   generateRandomString,
-  parseRespBulkString,
+  parseArrayBulkString,
   sliceData,
   parseNumber,
   parseString,
+  isMaster,
+  isReplica,
   NULL_VALUE,
 };

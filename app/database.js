@@ -102,5 +102,4 @@ function expireItems() {
 module.exports = {
   loadDatabase,
   expireItems,
-  readDatabaseFile,
 };

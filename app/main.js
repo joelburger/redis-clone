@@ -1,10 +1,10 @@
 const net = require('net');
 const { CONFIG } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
-const { generateRandomString, parseRespBulkString } = require('./utils');
+const { generateRandomString, isReplica } = require('./utils');
 const { cliParameters } = require('./constants');
-const processors = require('./processors');
-const { connectToMaster: handshake, isReplica } = require('./replica');
+const { handshake } = require('./replica');
+const { handleDataEvent } = require('./processors');
 
 const DEFAULT_HOST = 'localhost';
 const DEFAULT_PORT = 6379;
@@ -27,26 +27,6 @@ function parseCliParameters() {
       CONFIG[parameter] = cliArguments[index + 1];
     }
   });
-}
-
-function handleDataEvent(socket, data) {
-  try {
-    const [command, ...args] = parseRespBulkString(data);
-
-    console.log('command', command);
-    console.log('args', args);
-
-    const redisCommand = command.toLowerCase();
-    const processor = processors[redisCommand];
-
-    if (processor) {
-      processor.process(socket, args);
-    } else {
-      console.log(`Unknown command: ${redisCommand}`);
-    }
-  } catch (err) {
-    console.log('Fatal error:', err);
-  }
 }
 
 function startServer() {
@@ -76,7 +56,7 @@ async function initialise() {
 
   startServer(serverHost, serverPort);
   if (isReplica()) {
-    handshake(serverHost, serverPort).then((r) => console.log('Successful handshake with master'));
+    handshake(serverHost, serverPort).then(() => console.log('Successful handshake with master'));
   }
 }
 
