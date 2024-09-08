@@ -22,10 +22,10 @@ module.exports = {
     const [key, value, expiryArgument, expiresIn] = args;
     const item = createItem(key, value, expiryArgument, expiresIn);
     STORAGE.set(key, item);
-    socket.write(constructSimpleString('OK'));
 
     if (isMaster()) {
       REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['SET', key, value])));
+      socket.write(constructSimpleString('OK'));
     }
   },
 };
