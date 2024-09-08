@@ -4,10 +4,13 @@ const { STORAGE } = require('../global');
 const { constructArray } = require('../helpers/resp');
 
 function filterKeys(map, specifiedKey) {
-  if (specifiedKey) {
-    return Array.from(map.keys()).filter((key) => key.toLowerCase() === specifiedKey.toLowerCase());
+  if (!specifiedKey) {
+    throw new Error('Invalid argument for KEYS');
   }
-  return Array.from(map.keys());
+  if (specifiedKey === '*') {
+    return Array.from(map.keys());
+  }
+  return Array.from(map.keys()).filter((key) => key.toLowerCase() === specifiedKey.toLowerCase());
 }
 
 module.exports = {

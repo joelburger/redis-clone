@@ -11,7 +11,7 @@ module.exports = {
       const configValue = CONFIG[key.toLowerCase()];
       socket.write(constructArray([key, configValue]));
     } else {
-      throw new Error(`Invalid subcommand: ${subCommand}`);
+      throw new Error(`Invalid argument for CONFIG: ${subCommand}`);
     }
   },
 };

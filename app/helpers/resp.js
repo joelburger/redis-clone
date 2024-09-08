@@ -26,7 +26,11 @@ function parseArrayBulkString(arrayString) {
   const regex = /\*(\d+)\r\n(\$\d+\r\n.+\r\n)+/g;
   const matches = arrayString.match(regex) || [];
   return matches.map((match) =>
-    match.split('\r\n').filter((component) => component && !component.startsWith('*') && !component.startsWith('$')),
+    match
+      .split('\r\n')
+      .filter(
+        (component) => component && (!component.startsWith('*') || component === '*') && !component.startsWith('$'),
+      ),
   );
 }
 
