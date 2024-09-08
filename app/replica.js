@@ -4,6 +4,8 @@ const { cliParameters } = require('./constants');
 const { writeArray } = require('./utils');
 
 function validateResponse(response, expectedResponse) {
+  console.log(`Validating response: ${response}`);
+
   if (!new RegExp(`^${expectedResponse}$`).test(response)) {
     throw new Error(`Unexpected response: received "${response}", but expected "${expectedResponse}".`);
   }

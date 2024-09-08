@@ -1,8 +1,13 @@
 const net = require('net');
-const { parseString, cleanString, constructArray } = require('./utils');
+const { parseString, cleanString, constructArray, parseRespBulkString } = require('./utils');
 
 function connect(host, port) {
   const client = new net.Socket();
+
+  client.on('data', (data) => {
+    const debug = Buffer.from(data).toString('utf-8');
+    console.log(`Incoming from master: ${debug.replaceAll('\r\n', '\\r\\n')}`);
+  });
 
   client.on('close', () => {
     console.log('Connection closed');
@@ -33,11 +38,13 @@ async function sendArray(client, stringValues) {
         const { stringValue } = parseString(buffer);
         resolve(cleanString(stringValue));
       } catch (err) {
+        console.log('Error:', err);
         reject(err);
       }
     });
 
     client.once('error', (err) => {
+      console.log('Error:', err);
       reject(err);
     });
   });

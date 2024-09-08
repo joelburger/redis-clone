@@ -17,7 +17,6 @@ module.exports = {
     const offset = CONFIG.serverInfo.replication['master_repl_offset'];
     writeString(socket, `FULLRESYNC ${replicaId} ${offset}`);
     syncFile(socket);
-
     REPLICAS.push(socket);
   },
 };

@@ -43,6 +43,8 @@ function generateRandomString(length = 40) {
 }
 
 function parseRespBulkString(data) {
+  '*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\n123\r\n*3\r\n$3\r\nSET\r\n$3\r\nbar\r\n$3\r\n456\r\n*3\r\n$3\r\nSET\r\n$3\r\nbaz\r\n$3\r\n789\r\n';
+
   return Buffer.from(data)
     .toString('utf-8')
     .split('\r\n')

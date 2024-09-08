@@ -4,7 +4,7 @@ const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, parseRespBulkString } = require('./utils');
 const { cliParameters } = require('./constants');
 const processors = require('./processors');
-const { connectToMaster, isReplica } = require('./replica');
+const { connectToMaster: handshake, isReplica } = require('./replica');
 
 const DEFAULT_HOST = 'localhost';
 const DEFAULT_PORT = 6379;
@@ -32,6 +32,10 @@ function parseCliParameters() {
 function handleDataEvent(socket, data) {
   try {
     const [command, ...args] = parseRespBulkString(data);
+
+    console.log('command', command);
+    console.log('args', args);
+
     const redisCommand = command.toLowerCase();
     const processor = processors[redisCommand];
 
@@ -66,13 +70,13 @@ async function initialise() {
   parseCliParameters();
   setServerInfo();
   loadDatabase();
-  startServer();
 
-  // TODO Fix this
   const serverHost = DEFAULT_HOST;
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
+
+  startServer(serverHost, serverPort);
   if (isReplica()) {
-    connectToMaster(serverHost, serverPort).then((r) => console.log('Connection established with master'));
+    handshake(serverHost, serverPort).then((r) => console.log('Successful handshake with master'));
   }
 }
 
