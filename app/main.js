@@ -26,17 +26,17 @@ function parseCliParameters() {
   });
 }
 
-function handleMasterDataEvent(socket, data) {
+function handleDataEvent(socket, data, processors, updateReplicaOffset) {
   try {
     const stringData = data.toString('utf-8');
     const commandGroups = parseArrayBulkString(stringData);
-    commandGroups.forEach((commandGroup) => {
-      console.log(`Incoming command: ${commandGroup.item}`);
-      const [command, ...args] = commandGroup.item;
-      const processor = processors.master[command.toLowerCase()];
-
+    commandGroups.forEach(({ item, size }) => {
+      console.log(`Incoming command: ${item}. Bytes received: ${size}`);
+      const [command, ...args] = item;
+      const processor = processors[command.toLowerCase()];
       if (processor) {
         processor.process(socket, args);
+        if (updateReplicaOffset) updateReplicaOffset(size);
       } else {
         console.log(`Unknown command: ${command}`);
       }
@@ -46,28 +46,16 @@ function handleMasterDataEvent(socket, data) {
   }
 }
 
+function handleMasterDataEvent(socket, data) {
+  handleDataEvent(socket, data, processors.master);
+}
+
 function handleReplicaDataEvent(socket, data) {
-  try {
-    const stringData = data.toString('utf-8');
-    const commandGroups = parseArrayBulkString(stringData);
-    commandGroups.forEach((commandGroup) => {
-      console.log(`Incoming replica command: ${commandGroup.item}. Bytes received: ${commandGroup.size}`);
-      const [command, ...args] = commandGroup.item;
-      const processor = processors.replica[command.toLowerCase()];
-      if (processor) {
-        processor.process(socket, args);
-        const newOffset = REPLICA_OFFSET.bytesProcessed + commandGroup.size;
-        console.log(
-          `Incrementing replica offset. ${REPLICA_OFFSET.bytesProcessed} plus ${commandGroup.size} = ${newOffset}`,
-        );
-        REPLICA_OFFSET.bytesProcessed = newOffset;
-      } else {
-        console.log(`Unknown replica command: ${command}`);
-      }
-    });
-  } catch (err) {
-    console.log('Fatal error:', err);
-  }
+  handleDataEvent(socket, data, processors.replica, (size) => {
+    const newOffset = REPLICA_OFFSET.bytesProcessed + size;
+    console.log(`Incrementing replica offset. ${REPLICA_OFFSET.bytesProcessed} plus ${size} = ${newOffset}`);
+    REPLICA_OFFSET.bytesProcessed = newOffset;
+  });
 }
 
 async function initialise() {
