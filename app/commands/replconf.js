@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { constructSimpleString, constructArray } = require('../helpers/resp');
+const { REPLICA_OFFSET } = require('../global');
 
 module.exports = {
   process(socket, args) {
@@ -14,7 +15,7 @@ module.exports = {
         break;
       case 'getack':
         if (configValue === '*') {
-          socket.write(constructArray(['REPLCONF', 'ACK', '0']));
+          socket.write(constructArray(['REPLCONF', 'ACK', String(REPLICA_OFFSET.bytesProcessed)]));
         } else {
           throw new Error('Invalid  argument for GETACK');
         }

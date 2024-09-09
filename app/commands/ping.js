@@ -1,6 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { constructSimpleString } = require('../helpers/resp');
+const { constructSimpleString, constructArray } = require('../helpers/resp');
+const { REPLICAS } = require('../global');
 
 module.exports = {
   process(socket, args) {

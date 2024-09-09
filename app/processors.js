@@ -10,13 +10,20 @@ const replconf = require('./commands/replconf');
 const psync = require('./commands/psync');
 
 module.exports = {
-  [commands.PING]: ping,
-  [commands.ECHO]: echo,
-  [commands.GET]: get,
-  [commands.SET]: set,
-  [commands.CONFIG]: config,
-  [commands.KEYS]: keys,
-  [commands.INFO]: info,
-  [commands.REPLICA_CONFIG]: replconf,
-  [commands.PSYNC]: psync,
+  master: {
+    [commands.PING]: ping,
+    [commands.ECHO]: echo,
+    [commands.GET]: get,
+    [commands.SET]: set,
+    [commands.CONFIG]: config,
+    [commands.KEYS]: keys,
+    [commands.INFO]: info,
+    [commands.REPLICA_CONFIG]: replconf,
+    [commands.PSYNC]: psync,
+  },
+  replica: {
+    [commands.SET]: set,
+    [commands.PING]: ping,
+    [commands.REPLICA_CONFIG]: replconf,
+  },
 };

@@ -1,4 +1,4 @@
-const { CONFIG } = require('./global');
+const { CONFIG, REPLICA_OFFSET } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, isReplica, isMaster } = require('./helpers/common');
 const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL } = require('./constants');
@@ -26,19 +26,43 @@ function parseCliParameters() {
   });
 }
 
-function handleDataEvent(socket, data) {
+function handleMasterDataEvent(socket, data) {
   try {
     const stringData = data.toString('utf-8');
     const commandGroups = parseArrayBulkString(stringData);
     commandGroups.forEach((commandGroup) => {
-      console.log(`Incoming command: ${commandGroup}`);
-      const [command, ...args] = commandGroup;
-      const processor = processors[command.toLowerCase()];
+      console.log(`Incoming command: ${commandGroup.item}`);
+      const [command, ...args] = commandGroup.item;
+      const processor = processors.master[command.toLowerCase()];
 
       if (processor) {
         processor.process(socket, args);
       } else {
         console.log(`Unknown command: ${command}`);
+      }
+    });
+  } catch (err) {
+    console.log('Fatal error:', err);
+  }
+}
+
+function handleReplicaDataEvent(socket, data) {
+  try {
+    const stringData = data.toString('utf-8');
+    const commandGroups = parseArrayBulkString(stringData);
+    commandGroups.forEach((commandGroup) => {
+      console.log(`Incoming replica command: ${commandGroup.item}. Bytes received: ${commandGroup.size}`);
+      const [command, ...args] = commandGroup.item;
+      const processor = processors.replica[command.toLowerCase()];
+      if (processor) {
+        processor.process(socket, args);
+        const newOffset = REPLICA_OFFSET.bytesProcessed + commandGroup.size;
+        console.log(
+          `Incrementing replica offset. ${REPLICA_OFFSET.bytesProcessed} plus ${commandGroup.size} = ${newOffset}`,
+        );
+        REPLICA_OFFSET.bytesProcessed = newOffset;
+      } else {
+        console.log(`Unknown replica command: ${command}`);
       }
     });
   } catch (err) {
@@ -55,11 +79,13 @@ async function initialise() {
   const serverHost = DEFAULT_HOST;
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
 
-  const server = createServer(serverHost, serverPort, handleDataEvent);
+  const server = createServer(serverHost, serverPort, handleMasterDataEvent);
   server.listen(serverPort, serverHost);
 
   if (isReplica()) {
-    handshake(serverHost, serverPort, handleDataEvent).then(() => console.log('Successful handshake with master'));
+    handshake(serverHost, serverPort, handleReplicaDataEvent).then(() =>
+      console.log('Successful handshake with master'),
+    );
   }
 }
 
