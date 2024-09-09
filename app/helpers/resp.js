@@ -18,6 +18,10 @@ function constructArray(stringValues) {
   return output;
 }
 
+function constructSimpleInteger(integerValue) {
+  return `:${integerValue}\r\n`;
+}
+
 function constructSimpleString(stringValue) {
   return `+${stringValue}\r\n`;
 }
@@ -52,6 +56,7 @@ function removeTerminators(stringValue, subChar = '') {
 module.exports = {
   constructArray,
   constructSimpleString,
+  constructSimpleInteger,
   constructFile,
   parseArrayBulkString,
   removeTerminators,

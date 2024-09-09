@@ -8,6 +8,7 @@ const keys = require('./commands/keys');
 const info = require('./commands/info');
 const replconf = require('./commands/replconf');
 const psync = require('./commands/psync');
+const wait = require('./commands/wait');
 
 module.exports = {
   master: {
@@ -20,6 +21,7 @@ module.exports = {
     [commands.INFO]: info,
     [commands.REPLICA_CONFIG]: replconf,
     [commands.PSYNC]: psync,
+    [commands.WAIT]: wait,
   },
   replica: {
     [commands.SET]: set,

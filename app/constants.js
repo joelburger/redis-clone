@@ -8,6 +8,7 @@ const commands = {
   INFO: 'info',
   REPLICA_CONFIG: 'replconf',
   PSYNC: 'psync',
+  WAIT: 'wait',
 };
 
 const cliParameters = {

@@ -1,12 +1,12 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { constructSimpleString } = require('../helpers/resp');
+const { constructSimpleInteger } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
-    validateArguments(commands.PING, args, 0);
+    validateArguments(commands.WAIT, args, 2);
     if (isMaster()) {
-      socket.write(constructSimpleString('PONG'));
+      socket.write(constructSimpleInteger(0));
     }
   },
 };
