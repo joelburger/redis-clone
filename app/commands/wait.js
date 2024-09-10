@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { constructSimpleNumber, constructArray } = require('../helpers/resp');
-const { REPLICAS, REPLICA_WAIT } = require('../global');
+const { REPLICAS, REPLICA } = require('../global');
 
 let timeout;
 let requestedAck;
@@ -25,10 +25,10 @@ function stopTimers() {
  */
 function checkAckAndRespond(socket) {
   intervalId = setInterval(() => {
-    if (REPLICA_WAIT.ack >= requestedAck) {
+    if (REPLICA.ack >= requestedAck) {
       stopTimers();
       console.log(`Requested ack has been reached. Request was ${requestedAck}`);
-      socket.write(constructSimpleNumber(REPLICA_WAIT.ack));
+      socket.write(constructSimpleNumber(REPLICA.ack));
     }
   }, 1);
 }
@@ -45,7 +45,7 @@ function setReplicaWaitTimeout(socket) {
   console.log(`Setting replica wait timeout to ${timeout}`);
   timeoutId = setTimeout(() => {
     stopTimers();
-    const result = REPLICA_WAIT.ack || REPLICAS.length;
+    const result = REPLICA.ack || REPLICAS.length;
     console.log(`Timeout reached. Returning ack value of ${result}`);
     socket.write(constructSimpleNumber(result));
   }, timeout);
@@ -56,7 +56,7 @@ function setReplicaWaitTimeout(socket) {
  */
 function sendAckRequestToAllReplicas() {
   // Reset the acknowledgment count to zero before sending acknowledgment requests.
-  REPLICA_WAIT.ack = 0;
+  REPLICA.ack = 0;
 
   REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['REPLCONF', 'GETACK', '*'])));
 }

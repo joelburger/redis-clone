@@ -1,4 +1,4 @@
-const { CONFIG, REPLICA_OFFSET } = require('./global');
+const { CONFIG, REPLICA } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, isReplica, isMaster } = require('./helpers/common');
 const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL } = require('./constants');
@@ -52,9 +52,9 @@ function handleMasterDataEvent(socket, data) {
 
 function handleReplicaDataEvent(socket, data) {
   handleDataEvent(socket, data, processors.replica, (size) => {
-    const newOffset = REPLICA_OFFSET.bytesProcessed + size;
-    console.log(`Incrementing replica offset. ${REPLICA_OFFSET.bytesProcessed} plus ${size} = ${newOffset}`);
-    REPLICA_OFFSET.bytesProcessed = newOffset;
+    const newOffset = REPLICA.bytesProcessed + size;
+    console.log(`Incrementing replica offset. ${REPLICA.bytesProcessed} plus ${size} = ${newOffset}`);
+    REPLICA.bytesProcessed = newOffset;
   });
 }
 

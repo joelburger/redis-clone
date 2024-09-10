@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { STORAGE, REPLICAS, REPLICA_WAIT } = require('../global');
+const { STORAGE, REPLICAS } = require('../global');
 const { constructArray, constructSimpleNumber, constructError } = require('../helpers/resp');
 const { createItem } = require('./set');
 

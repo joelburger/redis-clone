@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments, isReplica, isMaster } = require('../helpers/common');
 const { constructSimpleString, constructArray } = require('../helpers/resp');
-const { REPLICA_OFFSET, REPLICA_ACK, REPLICA_WAIT } = require('../global');
+const { REPLICA } = require('../global');
 
 module.exports = {
   process(socket, args) {
@@ -14,14 +14,14 @@ module.exports = {
         break;
       case 'ack':
         if (isMaster()) {
-          REPLICA_WAIT.ack++;
-          console.log(`Incrementing replicas that sent ack. New ack count: ${REPLICA_WAIT.ack}`);
+          REPLICA.ack++;
+          console.log(`Incrementing replicas that sent ack. New ack count: ${REPLICA.ack}`);
         }
         break;
       case 'getack':
         if (isReplica()) {
           if (configValue === '*') {
-            socket.write(constructArray(['REPLCONF', 'ACK', String(REPLICA_OFFSET.bytesProcessed)]));
+            socket.write(constructArray(['REPLCONF', 'ACK', String(REPLICA.bytesProcessed)]));
           } else {
             throw new Error('Invalid  argument for GETACK');
           }
