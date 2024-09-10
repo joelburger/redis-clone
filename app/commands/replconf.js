@@ -5,7 +5,7 @@ const { REPLICA_OFFSET, REPLICA_ACK, REPLICA_WAIT } = require('../global');
 
 module.exports = {
   process(socket, args) {
-    validateArguments(commands.REPLICA_CONFIG, args, 2, 3);
+    validateArguments(commands.REPLCONF, args, 2, 3);
     const [configProperty, configValue] = args;
     switch (configProperty.toLowerCase()) {
       case 'capa':

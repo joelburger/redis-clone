@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
-const { constructSimpleInteger, constructArray } = require('../helpers/resp');
+const { constructSimpleNumber, constructArray } = require('../helpers/resp');
 const { REPLICAS, REPLICA_WAIT } = require('../global');
 
 let timeout;
@@ -28,7 +28,7 @@ function checkAckAndRespond(socket) {
     if (REPLICA_WAIT.ack >= requestedAck) {
       stopTimers();
       console.log(`Requested ack has been reached. Request was ${requestedAck}`);
-      socket.write(constructSimpleInteger(REPLICA_WAIT.ack));
+      socket.write(constructSimpleNumber(REPLICA_WAIT.ack));
     }
   }, 1);
 }
@@ -47,7 +47,7 @@ function setReplicaWaitTimeout(socket) {
     stopTimers();
     const result = REPLICA_WAIT.ack || REPLICAS.length;
     console.log(`Timeout reached. Returning ack value of ${result}`);
-    socket.write(constructSimpleInteger(result));
+    socket.write(constructSimpleNumber(result));
   }, timeout);
 }
 

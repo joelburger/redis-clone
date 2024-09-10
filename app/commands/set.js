@@ -1,19 +1,19 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { STORAGE, REPLICAS, REPLICA_WAIT } = require('../global');
+const { STORAGE, REPLICAS } = require('../global');
 const { constructSimpleString, constructArray } = require('../helpers/resp');
 
 function createItem(key, value, expiryArgument, expiresIn) {
-  if (expiryArgument?.toLowerCase() === 'px') {
-    return {
-      name: key,
-      value,
-      expireAt: new Date(Date.now() + Number(expiresIn)),
-    };
-  }
-  return {
-    value,
+  const item = {
+    name: key,
+    value: isNaN(Number(value)) ? value : Number(value),
   };
+
+  if (expiryArgument?.toLowerCase() === 'px') {
+    item.expireAt = new Date(Date.now() + Number(expiresIn));
+  }
+
+  return item;
 }
 
 module.exports = {

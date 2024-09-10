@@ -1,31 +1,34 @@
 const { commands } = require('./constants');
-const ping = require('./commands/ping');
+const config = require('./commands/config');
 const echo = require('./commands/echo');
 const get = require('./commands/get');
-const set = require('./commands/set');
-const config = require('./commands/config');
-const keys = require('./commands/keys');
+const incr = require('./commands/incr');
 const info = require('./commands/info');
-const replconf = require('./commands/replconf');
+const keys = require('./commands/keys');
+const ping = require('./commands/ping');
 const psync = require('./commands/psync');
+const replconf = require('./commands/replconf');
+const set = require('./commands/set');
 const wait = require('./commands/wait');
 
 module.exports = {
   master: {
-    [commands.PING]: ping,
+    [commands.CONFIG]: config,
     [commands.ECHO]: echo,
     [commands.GET]: get,
-    [commands.SET]: set,
-    [commands.CONFIG]: config,
-    [commands.KEYS]: keys,
+    [commands.INCR]: incr,
     [commands.INFO]: info,
-    [commands.REPLICA_CONFIG]: replconf,
+    [commands.KEYS]: keys,
+    [commands.PING]: ping,
     [commands.PSYNC]: psync,
+    [commands.REPLCONF]: replconf,
+    [commands.SET]: set,
     [commands.WAIT]: wait,
   },
   replica: {
-    [commands.SET]: set,
+    [commands.INCR]: incr,
     [commands.PING]: ping,
-    [commands.REPLICA_CONFIG]: replconf,
+    [commands.REPLCONF]: replconf,
+    [commands.SET]: set,
   },
 };

@@ -6,9 +6,10 @@ const commands = {
   CONFIG: 'config',
   KEYS: 'keys',
   INFO: 'info',
-  REPLICA_CONFIG: 'replconf',
+  REPLCONF: 'replconf',
   PSYNC: 'psync',
   WAIT: 'wait',
+  INCR: 'incr',
 };
 
 const cliParameters = {
