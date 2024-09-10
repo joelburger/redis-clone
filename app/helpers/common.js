@@ -10,6 +10,19 @@ function validateArguments(commandName, args, minCount, maxCount = minCount) {
   }
 }
 
+function createItem(key, value, expiryArgument, expiresIn) {
+  const item = {
+    name: key,
+    value: isNaN(Number(value)) ? value : Number(value),
+  };
+
+  if (expiryArgument?.toLowerCase() === 'px') {
+    item.expireAt = new Date(Date.now() + Number(expiresIn));
+  }
+
+  return item;
+}
+
 function generateRandomString(length = 40) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
@@ -32,6 +45,7 @@ function isReplica() {
 
 module.exports = {
   validateArguments,
+  createItem,
   generateRandomString,
   isMaster,
   isReplica,

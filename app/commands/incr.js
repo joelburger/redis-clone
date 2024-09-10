@@ -2,6 +2,11 @@ const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
 const { STORAGE, REPLICAS, REPLICA_WAIT } = require('../global');
 const { constructArray, constructSimpleNumber } = require('../helpers/resp');
+const { createItem } = require('./set');
+
+function propagateChanges() {
+  REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));
+}
 
 module.exports = {
   process(socket, args) {
@@ -10,6 +15,13 @@ module.exports = {
 
     if (!STORAGE.has(specifiedKey)) {
       console.log(`Specified key "${specifiedKey}" does not exist.`);
+
+      STORAGE.set(specifiedKey, createItem(specifiedKey, 1));
+
+      if (isMaster()) {
+        propagateChanges();
+        socket.write(constructSimpleNumber(1));
+      }
       return;
     }
 
@@ -24,7 +36,7 @@ module.exports = {
     item.value++;
 
     if (isMaster()) {
-      REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));
+      propagateChanges();
       socket.write(constructSimpleNumber(item.value));
     }
   },
