@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { STORAGE, REPLICAS } = require('../global');
+const { STORAGE, REPLICAS, REPLICA_WAIT } = require('../global');
 const { constructSimpleString, constructArray } = require('../helpers/resp');
 
 function createItem(key, value, expiryArgument, expiresIn) {
