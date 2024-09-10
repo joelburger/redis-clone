@@ -18,6 +18,10 @@ function constructArray(stringValues) {
   return output;
 }
 
+function constructError(message) {
+  return `-${message}`;
+}
+
 function constructSimpleNumber(numberValue) {
   return `:${numberValue}\r\n`;
 }
@@ -55,6 +59,7 @@ function removeTerminators(stringValue, subChar = '') {
 
 module.exports = {
   constructArray,
+  constructError,
   constructSimpleString,
   constructSimpleNumber: constructSimpleNumber,
   constructFile,

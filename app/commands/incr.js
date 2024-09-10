@@ -1,10 +1,10 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
 const { STORAGE, REPLICAS, REPLICA_WAIT } = require('../global');
-const { constructArray, constructSimpleNumber } = require('../helpers/resp');
+const { constructArray, constructSimpleNumber, constructError } = require('../helpers/resp');
 const { createItem } = require('./set');
 
-function propagateChanges() {
+function propagateCommand(specifiedKey) {
   REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));
 }
 
@@ -19,7 +19,7 @@ module.exports = {
       STORAGE.set(specifiedKey, createItem(specifiedKey, 1));
 
       if (isMaster()) {
-        propagateChanges();
+        propagateCommand(specifiedKey);
         socket.write(constructSimpleNumber(1));
       }
       return;
@@ -27,8 +27,9 @@ module.exports = {
 
     const item = STORAGE.get(specifiedKey);
 
-    if (typeof item.value !== 'number' || isNaN(item.value)) {
+    if (!Number.isInteger(item.value)) {
       console.log(`Specified key "${specifiedKey}" is not a number.`);
+      socket.write(constructError('ERR value is not an integer or out of range'));
       return;
     }
 
@@ -36,7 +37,7 @@ module.exports = {
     item.value++;
 
     if (isMaster()) {
-      propagateChanges();
+      propagateCommand(specifiedKey);
       socket.write(constructSimpleNumber(item.value));
     }
   },
