@@ -26,10 +26,8 @@ module.exports = {
 
     resetReplicaWait();
 
-    const [replicaCount, timeout] = args;
-
-    REPLICA_WAIT.requestedAck = parseInt(replicaCount, 10);
-    REPLICA_WAIT.timeout = parseInt(timeout, 10);
+    REPLICA_WAIT.requestedAck = parseInt(args[0], 10);
+    REPLICA_WAIT.timeout = parseInt(args[1], 10);
 
     // Send GETACK to all replicas
     REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['REPLCONF', 'GETACK', '*'])));
