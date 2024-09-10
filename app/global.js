@@ -2,9 +2,12 @@ module.exports = {
   STORAGE: new Map(),
   CONFIG: { serverInfo: {} },
 
-  REPLICAS: [],
-
   REPLICA: {
+    /**
+     * An array of client sockets. Each socket represents a connection to a replica server.
+     */
+    clients: [],
+
     /**
      * Refers to the number of bytes that have been processed by a replica
      * during replication. This is used to track the progress of data synchronisation

@@ -10,6 +10,7 @@ const commands = {
   PSYNC: 'psync',
   WAIT: 'wait',
   INCR: 'incr',
+  MULTI: 'multi',
 };
 
 const cliParameters = {

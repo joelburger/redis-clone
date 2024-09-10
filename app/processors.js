@@ -5,6 +5,7 @@ const get = require('./commands/get');
 const incr = require('./commands/incr');
 const info = require('./commands/info');
 const keys = require('./commands/keys');
+const multi = require('./commands/multi');
 const ping = require('./commands/ping');
 const psync = require('./commands/psync');
 const replconf = require('./commands/replconf');
@@ -19,6 +20,7 @@ module.exports = {
     [commands.INCR]: incr,
     [commands.INFO]: info,
     [commands.KEYS]: keys,
+    [commands.MULTI]: multi,
     [commands.PING]: ping,
     [commands.PSYNC]: psync,
     [commands.REPLCONF]: replconf,

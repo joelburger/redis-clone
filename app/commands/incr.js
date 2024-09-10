@@ -1,11 +1,11 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster } = require('../helpers/common');
-const { STORAGE, REPLICAS } = require('../global');
+const { STORAGE, REPLICA } = require('../global');
 const { constructArray, constructSimpleNumber, constructError } = require('../helpers/resp');
 const { createItem } = require('./set');
 
 function propagateCommand(specifiedKey) {
-  REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));
+  REPLICA.clients.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));
 }
 
 module.exports = {

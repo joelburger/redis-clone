@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { constructSimpleNumber, constructArray } = require('../helpers/resp');
-const { REPLICAS, REPLICA } = require('../global');
+const { REPLICA } = require('../global');
 
 let timeout;
 let requestedAck;
@@ -45,7 +45,7 @@ function setReplicaWaitTimeout(socket) {
   console.log(`Setting replica wait timeout to ${timeout}`);
   timeoutId = setTimeout(() => {
     stopTimers();
-    const result = REPLICA.ack || REPLICAS.length;
+    const result = REPLICA.ack || REPLICA.clients.length;
     console.log(`Timeout reached. Returning ack value of ${result}`);
     socket.write(constructSimpleNumber(result));
   }, timeout);
@@ -58,7 +58,7 @@ function sendAckRequestToAllReplicas() {
   // Reset the acknowledgment count to zero before sending acknowledgment requests.
   REPLICA.ack = 0;
 
-  REPLICAS.forEach((replicaSocket) => replicaSocket.write(constructArray(['REPLCONF', 'GETACK', '*'])));
+  REPLICA.clients.forEach((replicaSocket) => replicaSocket.write(constructArray(['REPLCONF', 'GETACK', '*'])));
 }
 
 module.exports = {
