@@ -19,7 +19,7 @@ function constructArray(stringValues) {
 }
 
 function constructError(message) {
-  return `-${message}`;
+  return `-${message}\r\n`;
 }
 
 function constructSimpleNumber(numberValue) {
