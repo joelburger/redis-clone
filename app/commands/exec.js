@@ -14,6 +14,7 @@ module.exports = {
 
     if (TRANSACTION.queue.length === 0) {
       socket.write(EMPTY_ARRAY);
+      TRANSACTION.enabled = false;
       return;
     }
 
