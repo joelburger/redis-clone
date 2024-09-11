@@ -14,6 +14,8 @@ const commands = {
   WAIT: 'wait',
 };
 
+const mutatorCommands = [commands.SET, commands.INCR];
+
 const cliParameters = {
   DIRECTORY: 'dir',
   DB_FILENAME: 'dbfilename',
@@ -39,4 +41,5 @@ module.exports = {
   DEFAULT_HOST,
   DEFAULT_PORT,
   EXPIRE_INTERVAL,
+  mutatorCommands,
 };

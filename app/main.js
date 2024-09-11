@@ -1,7 +1,14 @@
 const { CONFIG, REPLICA, TRANSACTION } = require('./global');
 const { loadDatabase, expireItems } = require('./database');
 const { generateRandomString, isReplica, isMaster } = require('./helpers/common');
-const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL, commands } = require('./constants');
+const {
+  cliParameters,
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  EXPIRE_INTERVAL,
+  commands,
+  mutatorCommands,
+} = require('./constants');
 const { handshake } = require('./replica');
 const processors = require('./processors');
 const { createServer } = require('./helpers/network');
@@ -39,13 +46,14 @@ function queueCommand(socket, command, processor) {
 
   const commandName = command[0].toLowerCase();
 
-  // Exclude transaction commands from being queued
-  if (commandName === commands.MULTI || commandName === commands.EXEC) return false;
+  if (mutatorCommands.includes(commandName)) {
+    console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
+    TRANSACTION.queue.push({ command, processor });
+    socket.write(constructSimpleString('QUEUED'));
+    return true;
+  }
 
-  console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
-  TRANSACTION.queue.push({ command, processor });
-  socket.write(constructSimpleString('QUEUED'));
-  return true;
+  return false;
 }
 
 /**
