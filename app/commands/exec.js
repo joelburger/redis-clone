@@ -7,25 +7,25 @@ module.exports = {
   process(socket, args) {
     validateArguments(commands.EXEC, args, 0);
 
-    if (!TRANSACTION.enabled) {
+    const transaction = TRANSACTION.get(socket);
+
+    if (!transaction.enabled) {
       socket.write(constructError('ERR EXEC without MULTI'));
       return;
     }
 
-    if (TRANSACTION.queue.length === 0) {
+    if (transaction.queue.length === 0) {
       socket.write(EMPTY_ARRAY);
-      TRANSACTION.enabled = false;
+      transaction.enabled = false;
       return;
     }
 
-    TRANSACTION.queue.forEach(({ command, processor }) => {
-      const [commandName, commandArgs] = command;
-
-      console.log(`Processing queued command ${commandName}`);
-      processor.process(socket, commandArgs);
+    transaction.queue.forEach(({ commandName, args, processor }) => {
+      console.log(`Processing queued command ${commandName} ${args}`);
+      processor.process(socket, args);
     });
 
-    TRANSACTION.enabled = false;
-    TRANSACTION.queue = [];
+    transaction.enabled = false;
+    transaction.queue = [];
   },
 };

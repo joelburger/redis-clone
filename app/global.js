@@ -3,10 +3,7 @@ module.exports = {
 
   CONFIG: { serverInfo: {} },
 
-  TRANSACTION: {
-    enabled: false,
-    queue: [],
-  },
+  TRANSACTION: new Map(),
 
   REPLICA: {
     /**

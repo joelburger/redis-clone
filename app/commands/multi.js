@@ -7,7 +7,7 @@ module.exports = {
   process(socket, args) {
     validateArguments(commands.MULTI, args, 0);
 
-    TRANSACTION.enabled = true;
+    TRANSACTION.get(socket).enabled = true;
 
     if (isMaster()) {
       socket.write(constructSimpleString('OK'));

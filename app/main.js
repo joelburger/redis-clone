@@ -37,23 +37,37 @@ function parseCliParameters() {
  * Queues a command for later execution, if transaction mode is enabled.
  *
  * @param {Object} socket - The socket object representing the connection.
- * @param {Array} command - The command to be queued.
+ * @param {string} commandName - The name of the command to be queued.
+ * @param {Array} args - The arguments for the command.
  * @param {Function} processor - The processor function to handle the command.
  * @returns {boolean} - Returns true if the command was queued, false otherwise.
  */
-function queueCommand(socket, command, processor) {
-  if (!TRANSACTION.enabled) return false;
+function queueCommand(socket, commandName, args, processor) {
+  const transaction = TRANSACTION.get(socket);
 
-  const commandName = command[0].toLowerCase();
+  if (!transaction.enabled) return false;
 
-  if (mutatorCommands.includes(commandName)) {
-    console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
-    TRANSACTION.queue.push({ command, processor });
-    socket.write(constructSimpleString('QUEUED'));
-    return true;
+  if (commands.MULTI === commandName || commands.EXEC === commandName) {
+    return false;
   }
 
-  return false;
+  console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
+  transaction.queue.push({ args, processor });
+  socket.write(constructSimpleString('QUEUED'));
+
+  return true;
+}
+
+/**
+ * Initializes the transaction state for a given socket.
+ * If the socket does not already have a transaction state, this function sets it up.
+ *
+ * @param {Object} socket - The socket object representing the connection.
+ */
+function initialiseTransactionState(socket) {
+  if (!TRANSACTION.has(socket)) {
+    TRANSACTION.set(socket, { enabled: false, queue: [] });
+  }
 }
 
 /**
@@ -73,7 +87,7 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
     const redisCommands = parseArrayBulkString(stringData);
     redisCommands.forEach(({ command, size }) => {
       console.log(
-        `Socket ID:  ${socket.remoteAddress}:${socket.remotePort}. Incoming command: ${command}. Bytes received: ${size}`,
+        `Socket:  ${socket.remoteAddress}:${socket.remotePort}. Incoming command: ${command}. Bytes received: ${size}`,
       );
 
       const [commandName, ...args] = command;
@@ -81,7 +95,8 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
       const processor = processors[commandName.toLowerCase()];
 
       if (processor) {
-        if (queueCommand(socket, command, processor)) return;
+        initialiseTransactionState(socket);
+        if (queueCommand(socket, commandName.toLowerCase(), args, processor)) return;
 
         processor.process(socket, args);
 
