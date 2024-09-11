@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { TRANSACTION } = require('../global');
-const { constructError } = require('../helpers/resp');
+const { constructError, EMPTY_ARRAY } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -12,11 +12,19 @@ module.exports = {
       return;
     }
 
+    if (TRANSACTION.queue.length === 0) {
+      socket.write(EMPTY_ARRAY);
+      return;
+    }
+
     TRANSACTION.queue.forEach(({ command, processor }) => {
       const [commandName, commandArgs] = command;
 
       console.log(`Processing queued command ${commandName}`);
       processor.process(socket, commandArgs);
     });
+
+    TRANSACTION.enabled = false;
+    TRANSACTION.queue = [];
   },
 };

@@ -1,5 +1,7 @@
 const NULL_VALUE = '$-1\r\n';
 
+const EMPTY_ARRAY = '*0\r\n';
+
 const EMPTY_RDB_FILE =
   'UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==';
 
@@ -65,6 +67,7 @@ module.exports = {
   constructFile,
   parseArrayBulkString,
   removeTerminators,
+  EMPTY_ARRAY,
   NULL_VALUE,
   EMPTY_RDB_FILE,
 };
