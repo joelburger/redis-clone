@@ -5,7 +5,7 @@ const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL, commands } =
 const { handshake } = require('./replica');
 const processors = require('./processors');
 const { createServer } = require('./helpers/network');
-const { parseArrayBulkString } = require('./helpers/resp');
+const { parseArrayBulkString, constructSimpleNumber, constructSimpleString } = require('./helpers/resp');
 
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
@@ -29,11 +29,12 @@ function parseCliParameters() {
 /**
  * Queues a command for later execution, if transaction mode is enabled.
  *
+ * @param {Object} socket - The socket object representing the connection.
  * @param {Array} command - The command to be queued.
  * @param {Function} processor - The processor function to handle the command.
  * @returns {boolean} - Returns true if the command was queued, false otherwise.
  */
-function queueCommand(command, processor) {
+function queueCommand(socket, command, processor) {
   if (!TRANSACTION.enabled) return false;
 
   const commandName = command[0].toLowerCase();
@@ -43,7 +44,7 @@ function queueCommand(command, processor) {
 
   console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
   TRANSACTION.queue.push({ command, processor });
-
+  socket.write(constructSimpleString('QUEUED'));
   return true;
 }
 
@@ -70,7 +71,7 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
       const processor = processors[commandName.toLowerCase()];
 
       if (processor) {
-        if (queueCommand(command, processor)) return;
+        if (queueCommand(socket, command, processor)) return;
 
         processor.process(socket, args);
 
