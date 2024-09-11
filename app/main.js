@@ -12,7 +12,7 @@ const {
 const { handshake } = require('./replica');
 const processors = require('./processors');
 const { createServer } = require('./helpers/network');
-const { parseArrayBulkString, constructSimpleNumber, constructSimpleString } = require('./helpers/resp');
+const { parseArrayBulkString, constructSimpleString } = require('./helpers/resp');
 
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
@@ -47,7 +47,8 @@ function queueCommand(socket, commandName, args, processor) {
 
   if (!transaction.enabled) return false;
 
-  if (commands.MULTI === commandName || commands.EXEC === commandName) {
+  // Transaction commands must not be queued!
+  if ([commands.MULTI, commands.EXEC, commands.DISCARD].includes(commandName)) {
     return false;
   }
 

@@ -12,10 +12,14 @@ function constructFile(base64String) {
   return Buffer.concat([rdbHead, rdbBuffer]);
 }
 
-function constructArray(values) {
+function constructArray(values, stringifyValues = true) {
   let output = `*${values.length}\r\n`;
   for (const value of values) {
-    output += `$${String(value).length}\r\n${value}\r\n`;
+    if (stringifyValues) {
+      output += `$${String(value).length}\r\n${value}\r\n`;
+    } else {
+      output += value;
+    }
   }
   return output;
 }

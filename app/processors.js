@@ -1,5 +1,6 @@
 const { commands } = require('./constants');
 const config = require('./commands/config');
+const discard = require('./commands/discard');
 const echo = require('./commands/echo');
 const exec = require('./commands/exec');
 const get = require('./commands/get');
@@ -16,6 +17,7 @@ const wait = require('./commands/wait');
 module.exports = {
   master: {
     [commands.CONFIG]: config,
+    [commands.DISCARD]: discard,
     [commands.ECHO]: echo,
     [commands.EXEC]: exec,
     [commands.GET]: get,

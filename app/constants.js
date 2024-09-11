@@ -1,5 +1,6 @@
 const commands = {
   CONFIG: 'config',
+  DISCARD: 'discard',
   ECHO: 'echo',
   EXEC: 'exec',
   GET: 'get',

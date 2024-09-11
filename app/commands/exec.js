@@ -11,9 +11,7 @@ function createResponseAggregator() {
       responses.push(value);
     },
     getBulkResponse() {
-      return responses.reduce((acc, response) => {
-        return (acc += response);
-      }, `*${responses.length}\r\n`);
+      return constructArray(responses, false);
     },
   };
 }
