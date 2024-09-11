@@ -52,7 +52,7 @@ function queueCommand(socket, commandName, args, processor) {
   }
 
   console.log(`Transaction mode enabled. Queuing command "${commandName}".`);
-  transaction.queue.push({ args, processor });
+  transaction.queue.push({ commandName, args, processor });
   socket.write(constructSimpleString('QUEUED'));
 
   return true;

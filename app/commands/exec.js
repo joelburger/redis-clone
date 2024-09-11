@@ -1,7 +1,22 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { TRANSACTION } = require('../global');
-const { constructError, EMPTY_ARRAY } = require('../helpers/resp');
+const { constructError, EMPTY_ARRAY, constructArray, removeTerminators } = require('../helpers/resp');
+
+function createResponseAggregator() {
+  const responses = [];
+
+  return {
+    write(value) {
+      responses.push(value);
+    },
+    getBulkResponse() {
+      return responses.reduce((acc, response) => {
+        return (acc += response);
+      }, `*${responses.length}\r\n`);
+    },
+  };
+}
 
 module.exports = {
   process(socket, args) {
@@ -20,10 +35,13 @@ module.exports = {
       return;
     }
 
+    const responseAggregator = createResponseAggregator();
     transaction.queue.forEach(({ commandName, args, processor }) => {
       console.log(`Processing queued command ${commandName} ${args}`);
-      processor.process(socket, args);
+      processor.process(responseAggregator, args);
     });
+
+    socket.write(responseAggregator.getBulkResponse());
 
     transaction.enabled = false;
     transaction.queue = [];
