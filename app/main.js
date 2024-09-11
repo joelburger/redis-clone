@@ -72,7 +72,7 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
     const stringData = data.toString('utf-8');
     const redisCommands = parseArrayBulkString(stringData);
     redisCommands.forEach(({ command, size }) => {
-      console.log(`Incoming command: ${command}. Bytes received: ${size}`);
+      console.log(`Socket ID: ${socket.id}. Incoming command: ${command}. Bytes received: ${size}`);
 
       const [commandName, ...args] = command;
 
