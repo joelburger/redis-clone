@@ -39,7 +39,7 @@ function parseArrayBulkString(arrayString) {
   matches.forEach((match) => {
     results.push({
       size: match.length,
-      item: match
+      command: match
         .split('\r\n')
         .filter(
           (component) => component && (!component.startsWith('*') || component === '*') && !component.startsWith('$'),

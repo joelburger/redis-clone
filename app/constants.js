@@ -1,16 +1,17 @@
 const commands = {
-  PING: 'ping',
-  ECHO: 'echo',
-  SET: 'set',
-  GET: 'get',
   CONFIG: 'config',
-  KEYS: 'keys',
-  INFO: 'info',
-  REPLCONF: 'replconf',
-  PSYNC: 'psync',
-  WAIT: 'wait',
+  ECHO: 'echo',
+  EXEC: 'exec',
+  GET: 'get',
   INCR: 'incr',
+  INFO: 'info',
+  KEYS: 'keys',
   MULTI: 'multi',
+  PING: 'ping',
+  PSYNC: 'psync',
+  REPLCONF: 'replconf',
+  SET: 'set',
+  WAIT: 'wait',
 };
 
 const cliParameters = {

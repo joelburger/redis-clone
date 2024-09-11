@@ -1,6 +1,12 @@
 module.exports = {
   STORAGE: new Map(),
+
   CONFIG: { serverInfo: {} },
+
+  TRANSACTION: {
+    enabled: false,
+    queue: [],
+  },
 
   REPLICA: {
     /**
