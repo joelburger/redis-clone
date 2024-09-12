@@ -12,6 +12,7 @@ const ping = require('./commands/ping');
 const psync = require('./commands/psync');
 const replconf = require('./commands/replconf');
 const set = require('./commands/set');
+const type = require('./commands/type');
 const wait = require('./commands/wait');
 
 module.exports = {
@@ -29,6 +30,7 @@ module.exports = {
     [commands.PSYNC]: psync,
     [commands.REPLCONF]: replconf,
     [commands.SET]: set,
+    [commands.TYPE]: type,
     [commands.WAIT]: wait,
   },
   replica: {

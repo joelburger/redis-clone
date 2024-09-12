@@ -30,9 +30,14 @@ function isReplica() {
   return CONFIG.serverInfo.role === 'slave';
 }
 
+function isNumber(value) {
+  return !isNaN(Number(value));
+}
+
 module.exports = {
   validateArguments,
   generateRandomString,
   isMaster,
   isReplica,
+  isNumber,
 };

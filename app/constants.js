@@ -12,6 +12,7 @@ const commands = {
   PSYNC: 'psync',
   REPLCONF: 'replconf',
   SET: 'set',
+  TYPE: 'type',
   WAIT: 'wait',
 };
 
