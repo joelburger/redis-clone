@@ -1,14 +1,7 @@
-const { CONFIG, REPLICA, TRANSACTION } = require('./global');
-const { loadDatabase, expireItems } = require('./database');
+const { CONFIG, REPLICA, TRANSACTION, STORAGE } = require('./global');
+const { loadDatabase, expireItems } = require('./helpers/datastore');
 const { generateRandomString, isReplica, isMaster } = require('./helpers/common');
-const {
-  cliParameters,
-  DEFAULT_HOST,
-  DEFAULT_PORT,
-  EXPIRE_INTERVAL,
-  commands,
-  mutatorCommands,
-} = require('./constants');
+const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL, commands } = require('./constants');
 const { handshake } = require('./replica');
 const processors = require('./processors');
 const { createServer } = require('./helpers/network');

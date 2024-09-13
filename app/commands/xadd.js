@@ -3,6 +3,15 @@ const { validateArguments } = require('../helpers/common');
 const { STORAGE } = require('../global');
 const { constructString, constructError } = require('../helpers/resp');
 
+/**
+ * Processes the stream ID for a new entry in a Redis stream.
+ * If the provided stream ID is '*', it generates a new ID based on the previous entry or the current timestamp.
+ * If the second part of the stream ID is '*', it increments the previous entry's sequence ID.
+ *
+ * @param {Object} stream - The stream object containing the current entries.
+ * @param {string} newStreamId - The new stream ID provided by the client.
+ * @returns {string} - The processed stream ID.
+ */
 function processStreamId(stream, newStreamId) {
   const previousStreamEntry = Array.from(stream.value)?.pop();
   const [previousStreamFirstId, previousStreamSecondId] = previousStreamEntry
@@ -30,6 +39,14 @@ function processStreamId(stream, newStreamId) {
   return newStreamId;
 }
 
+/**
+ * Validates the new stream ID against the previous stream entry.
+ * Ensures that the new stream ID is greater than the previous one.
+ *
+ * @param {Object} stream - The stream object containing the current entries.
+ * @param {string} newStreamId - The new stream ID provided by the client.
+ * @returns {string|null} - Returns an error message if validation fails, otherwise null.
+ */
 function validateNewStreamId(stream, newStreamId) {
   const previousStreamEntry = Array.from(stream.value)?.pop();
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
-const { fileMarkers, cliParameters } = require('./constants');
-const { CONFIG, STORAGE } = require('./global');
-const { readUnixTime, sliceData, readString } = require('./helpers/buffer');
+const { fileMarkers, cliParameters } = require('../constants');
+const { CONFIG, STORAGE } = require('../global');
+const { readUnixTime, sliceData, readString } = require('./buffer');
 
 // First 4 bytes from DB file are ignored
 // e.g.
@@ -57,6 +57,17 @@ function parseItemExpiry(items, cursor) {
   return { expireAt, cursor };
 }
 
+function expireItems() {
+  for (const item of STORAGE.values()) {
+    if (item.expireAt) {
+      if (new Date() > item.expireAt) {
+        console.log(`Expiring ${item.name}`);
+        STORAGE.delete(item.name);
+      }
+    }
+  }
+}
+
 function loadDatabase() {
   const buffer = readDatabaseFile();
 
@@ -85,17 +96,6 @@ function loadDatabase() {
     cursor = updatedCursorFromValue;
 
     STORAGE.set(key, { name: key, value, expireAt });
-  }
-}
-
-function expireItems() {
-  for (const item of STORAGE.values()) {
-    if (item.expireAt) {
-      if (new Date() > item.expireAt) {
-        console.log(`Expiring ${item.name}`);
-        STORAGE.delete(item.name);
-      }
-    }
   }
 }
 

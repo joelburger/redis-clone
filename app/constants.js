@@ -15,9 +15,8 @@ const commands = {
   TYPE: 'type',
   WAIT: 'wait',
   XADD: 'xadd',
+  XRANGE: 'xrange',
 };
-
-const mutatorCommands = [commands.SET, commands.INCR];
 
 const cliParameters = {
   DIRECTORY: 'dir',
@@ -44,5 +43,4 @@ module.exports = {
   DEFAULT_HOST,
   DEFAULT_PORT,
   EXPIRE_INTERVAL,
-  mutatorCommands,
 };

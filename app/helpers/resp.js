@@ -16,6 +16,10 @@ function constructString(value) {
   return `$${String(value).length}\r\n${value}\r\n`;
 }
 
+function constructArrayDeclaration(length) {
+  return `*${length}\r\n`;
+}
+
 function constructArray(values, stringifyValues = true) {
   let output = `*${values.length}\r\n`;
   for (const value of values) {
@@ -69,6 +73,7 @@ function removeTerminators(stringValue, subChar = '') {
 
 module.exports = {
   constructArray,
+  constructArrayDeclaration,
   constructError,
   constructSimpleString,
   constructSimpleNumber,

@@ -15,6 +15,7 @@ const set = require('./commands/set');
 const type = require('./commands/type');
 const wait = require('./commands/wait');
 const xadd = require('./commands/xadd');
+const xrange = require('./commands/xrange');
 
 module.exports = {
   master: {
@@ -34,6 +35,7 @@ module.exports = {
     [commands.TYPE]: type,
     [commands.WAIT]: wait,
     [commands.XADD]: xadd,
+    [commands.XRANGE]: xrange,
   },
   replica: {
     [commands.INCR]: incr,
