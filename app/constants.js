@@ -16,6 +16,7 @@ const commands = {
   WAIT: 'wait',
   XADD: 'xadd',
   XRANGE: 'xrange',
+  XREAD: 'xread',
 };
 
 const cliParameters = {

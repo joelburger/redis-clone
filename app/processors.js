@@ -16,6 +16,7 @@ const type = require('./commands/type');
 const wait = require('./commands/wait');
 const xadd = require('./commands/xadd');
 const xrange = require('./commands/xrange');
+const xread = require('./commands/xread');
 
 module.exports = {
   master: {
@@ -36,6 +37,7 @@ module.exports = {
     [commands.WAIT]: wait,
     [commands.XADD]: xadd,
     [commands.XRANGE]: xrange,
+    [commands.XREAD]: xread,
   },
   replica: {
     [commands.INCR]: incr,

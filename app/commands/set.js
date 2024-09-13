@@ -1,27 +1,13 @@
 const { commands } = require('../constants');
-const { validateArguments, isMaster, isNumber } = require('../helpers/common');
+const { validateArguments, isMaster, isNumber, createItem } = require('../helpers/common');
 const { STORAGE, REPLICA } = require('../global');
 const { constructSimpleString, constructArray } = require('../helpers/resp');
 
 module.exports = {
-  createItem(key, value, type, expiryArgument, expiresIn) {
-    const item = {
-      name: key,
-      value: isNumber(value) ? Number(value) : value,
-      type,
-    };
-
-    if (expiryArgument?.toLowerCase() === 'px') {
-      item.expireAt = new Date(Date.now() + Number(expiresIn));
-    }
-
-    return item;
-  },
-
   process(socket, args) {
     validateArguments(commands.SET, args, 2, 4);
     const [key, value, expiryArgument, expiresIn] = args;
-    const item = this.createItem(key, value, 'string', expiryArgument, expiresIn);
+    const item = createItem(key, value, 'string', expiryArgument, expiresIn);
     STORAGE.set(key, item);
 
     if (isMaster()) {

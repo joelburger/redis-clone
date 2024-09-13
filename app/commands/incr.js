@@ -1,8 +1,7 @@
 const { commands } = require('../constants');
-const { validateArguments, isMaster } = require('../helpers/common');
+const { validateArguments, isMaster, createItem } = require('../helpers/common');
 const { STORAGE, REPLICA } = require('../global');
 const { constructArray, constructSimpleNumber, constructError } = require('../helpers/resp');
-const { createItem } = require('./set');
 
 function propagateCommand(specifiedKey) {
   REPLICA.clients.forEach((replicaSocket) => replicaSocket.write(constructArray(['INCR', specifiedKey])));

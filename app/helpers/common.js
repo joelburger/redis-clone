@@ -34,10 +34,43 @@ function isNumber(value) {
   return !isNaN(Number(value));
 }
 
+function createItem(key, value, type, expiryArgument, expiresIn) {
+  const item = {
+    name: key,
+    value: isNumber(value) ? Number(value) : value,
+    type,
+  };
+
+  if (expiryArgument?.toLowerCase() === 'px') {
+    item.expireAt = new Date(Date.now() + Number(expiresIn));
+  }
+
+  return item;
+}
+
+/**
+ * Compares two stream IDs.
+ *
+ * @param {string} leftStreamId - The stream ID to compare.
+ * @param {string} rightStreamId - The other stream ID to compare.
+ * @returns {number} - Returns 1 if rightStreamId is greater, -1 if leftStreamId is greater, and 0 if they are equal.
+ */
+function compareStreamId(leftStreamId, rightStreamId) {
+  const [leftFirstId, leftSecondId] = leftStreamId.split('-').map(Number);
+  const [rightFirstId, rightSecondId] = rightStreamId.split('-').map(Number);
+
+  if (leftFirstId !== rightFirstId) {
+    return rightFirstId > leftFirstId ? 1 : -1;
+  }
+  return leftSecondId === rightSecondId ? 0 : rightSecondId > leftSecondId ? 1 : -1;
+}
+
 module.exports = {
-  validateArguments,
+  compareStreamId,
+  createItem,
   generateRandomString,
   isMaster,
-  isReplica,
   isNumber,
+  isReplica,
+  validateArguments,
 };
