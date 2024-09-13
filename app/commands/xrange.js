@@ -4,31 +4,21 @@ const { constructArray, constructString, constructArrayDeclaration } = require('
 const { STORAGE } = require('../global');
 
 function addDefaultSequenceNumber(streamId) {
+  if (streamId === '-') {
+    return '0-1';
+  }
+
   return streamId.includes('-') ? streamId : `${streamId}-0`;
 }
 
-function isGreaterThanOrEqualTo(leftStreamId, rightStreamId) {
-  const [lefStreamFirstId, leftStreamSecondId] = leftStreamId.split('-');
-  const [rightStreamFirstId, rightStreamSecondId] = rightStreamId.split('-');
+function compareStreamId(leftStreamId, rightStreamId) {
+  const [leftFirstId, leftSecondId] = leftStreamId.split('-').map(Number);
+  const [rightFirstId, rightSecondId] = rightStreamId.split('-').map(Number);
 
-  if (rightStreamFirstId > lefStreamFirstId) {
-    return true;
-  } else if (lefStreamFirstId === rightStreamFirstId) {
-    return rightStreamSecondId >= leftStreamSecondId;
+  if (leftFirstId !== rightFirstId) {
+    return rightFirstId > leftFirstId ? 1 : -1;
   }
-  return false;
-}
-
-function isLessThanOrEqualTo(leftStreamId, rightStreamId) {
-  const [lefStreamFirstId, leftStreamSecondId] = leftStreamId.split('-');
-  const [rightStreamFirstId, rightStreamSecondId] = rightStreamId.split('-');
-
-  if (rightStreamFirstId < lefStreamFirstId) {
-    return true;
-  } else if (lefStreamFirstId === rightStreamFirstId) {
-    return rightStreamSecondId <= leftStreamSecondId;
-  }
-  return false;
+  return leftSecondId === rightSecondId ? 0 : rightSecondId > leftSecondId ? 1 : -1;
 }
 
 module.exports = {
@@ -37,12 +27,13 @@ module.exports = {
 
     const [streamKey] = args;
     const [, fromStreamId, toStreamId] = args.map(addDefaultSequenceNumber);
+
     const stream = STORAGE.has(streamKey) ? STORAGE.get(streamKey) : { value: new Set(), type: 'stream' };
     let result = '';
     let keyCount = 0;
     for (const entry of stream.value) {
-      if (isGreaterThanOrEqualTo(fromStreamId, entry.streamId)) {
-        if (!toStreamId || isLessThanOrEqualTo(toStreamId, entry.streamId)) {
+      if (compareStreamId(fromStreamId, entry.streamId) >= 0) {
+        if (!toStreamId || compareStreamId(toStreamId, entry.streamId) <= 0) {
           keyCount++;
           result += `${constructArrayDeclaration(2)}${constructString(entry.streamId)}${constructArray(entry.data)}`;
         }
