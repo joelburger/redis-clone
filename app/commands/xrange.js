@@ -8,6 +8,10 @@ function addDefaultSequenceNumber(streamId) {
     return '0-1';
   }
 
+  if (streamId === '+') {
+    return null;
+  }
+
   return streamId.includes('-') ? streamId : `${streamId}-0`;
 }
 
