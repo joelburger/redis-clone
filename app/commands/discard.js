@@ -1,13 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { TRANSACTION } = require('../global');
-const {
-  constructError,
-  EMPTY_ARRAY,
-  constructArray,
-  removeTerminators,
-  constructSimpleString,
-} = require('../helpers/resp');
+const { constructError, constructSimpleString } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {

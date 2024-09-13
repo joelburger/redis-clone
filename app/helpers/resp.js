@@ -12,11 +12,15 @@ function constructFile(base64String) {
   return Buffer.concat([rdbHead, rdbBuffer]);
 }
 
+function constructString(value) {
+  return `$${String(value).length}\r\n${value}\r\n`;
+}
+
 function constructArray(values, stringifyValues = true) {
   let output = `*${values.length}\r\n`;
   for (const value of values) {
     if (stringifyValues) {
-      output += `$${String(value).length}\r\n${value}\r\n`;
+      output += constructString(value);
     } else {
       output += value;
     }
@@ -67,7 +71,8 @@ module.exports = {
   constructArray,
   constructError,
   constructSimpleString,
-  constructSimpleNumber: constructSimpleNumber,
+  constructSimpleNumber,
+  constructString,
   constructFile,
   parseArrayBulkString,
   removeTerminators,

@@ -14,6 +14,7 @@ const commands = {
   SET: 'set',
   TYPE: 'type',
   WAIT: 'wait',
+  XADD: 'xadd',
 };
 
 const mutatorCommands = [commands.SET, commands.INCR];

@@ -16,7 +16,7 @@ module.exports = {
     if (!STORAGE.has(specifiedKey)) {
       console.log(`Specified key "${specifiedKey}" does not exist.`);
 
-      STORAGE.set(specifiedKey, createItem(specifiedKey, 1));
+      STORAGE.set(specifiedKey, createItem(specifiedKey, 1, 'string'));
 
       if (isMaster()) {
         propagateCommand(specifiedKey);
