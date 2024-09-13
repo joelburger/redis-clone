@@ -1,54 +1,33 @@
 const { commands } = require('../constants');
-const { validateArguments, isMaster } = require('../helpers/common');
+const { validateArguments } = require('../helpers/common');
 const { STORAGE } = require('../global');
-const { createItem } = require('./set');
 const { constructString, constructError } = require('../helpers/resp');
 
-/**
- * Example stream:
- * [
- *   [
- *     "1526985054069-0",
- *     [
- *       "temperature",
- *       "36",
- *       "humidity",
- *       "95"
- *     ]
- *   ],
- *   [
- *     "1526985054079-0",
- *     [
- *       "temperature",
- *       "37",
- *       "humidity",
- *       "94"
- *     ]
- *   ],
- * ]
- */
+function processStreamId(stream, newStreamId) {
+  const previousStreamEntry = Array.from(stream.value)?.pop();
+  const [previousStreamFirstId, previousStreamSecondId] = previousStreamEntry
+    ? previousStreamEntry.streamId.split('-').map(Number)
+    : [0, 0];
+  const [newStreamFirstId, newStreamSecondId] = newStreamId.split('-');
 
-/**
- * Another example:
- * [
- *   [
- *     "some_key",
- *     [
- *       [
- *         "1526985054079-0",
- *         [
- *           "temperature",
- *           "37",
- *           "humidity",
- *           "94"
- *         ]
- *       ]
- *     ]
- *   ]
- * ]
- */
+  if (newStreamId === '*') {
+    return `${previousStreamFirstId}-${previousStreamSecondId + 1}`;
+  }
 
-function validateNewStreamId(stream, newStreamId, socket) {
+  if (newStreamSecondId === '*') {
+    if (Number(newStreamFirstId) === previousStreamFirstId) {
+      return `${previousStreamFirstId}-${previousStreamSecondId + 1}`;
+    }
+    if (newStreamFirstId === '0') {
+      return `${newStreamFirstId}-1`;
+    }
+    return `${newStreamFirstId}-0`;
+  }
+
+  return newStreamId;
+}
+
+function validateNewStreamId(stream, newStreamId) {
   const previousStreamEntry = Array.from(stream.value)?.pop();
 
   if (!previousStreamEntry) {
@@ -76,15 +55,9 @@ module.exports = {
   process(socket, args) {
     validateArguments(commands.XADD, args, 3, 20);
 
-    const [streamKey, newStreamId, ...values] = args;
-
-    let stream;
-    if (STORAGE.has(streamKey)) {
-      stream = STORAGE.get(streamKey);
-    } else {
-      stream = { value: new Set(), type: 'stream' };
-    }
-
+    const [streamKey, streamId, ...values] = args;
+    const stream = STORAGE.has(streamKey) ? STORAGE.get(streamKey) : { value: new Set(), type: 'stream' };
+    const newStreamId = processStreamId(stream, streamId);
     const error = validateNewStreamId(stream, newStreamId);
 
     if (error) {
@@ -93,11 +66,8 @@ module.exports = {
     }
 
     const streamItem = { streamId: newStreamId, data: values };
-
     stream.value.add(streamItem);
-
     STORAGE.set(streamKey, stream);
-
     socket.write(constructString(newStreamId));
   },
 };
