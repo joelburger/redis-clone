@@ -33,7 +33,7 @@ const fileMarkers = {
   EXPIRY_TIMEOUT_S: 0xfd,
 };
 
-const DEFAULT_HOST = 'localhost';
+const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 6379;
 const EXPIRE_INTERVAL = 10;
 
