@@ -11,7 +11,10 @@ function processStreamId(stream, newStreamId) {
   const [newStreamFirstId, newStreamSecondId] = newStreamId.split('-');
 
   if (newStreamId === '*') {
-    return `${previousStreamFirstId}-${previousStreamSecondId + 1}`;
+    if (previousStreamEntry) {
+      return `${previousStreamFirstId}-${previousStreamSecondId + 1}`;
+    }
+    return `${Date.now()}-0`;
   }
 
   if (newStreamSecondId === '*') {
