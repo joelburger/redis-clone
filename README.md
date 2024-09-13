@@ -1,33 +1,45 @@
-[![progress-banner](https://backend.codecrafters.io/progress/redis/8c997bc3-138a-471f-b675-d45edfe553b7)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# Redis Clone
 
-This is a starting point for JavaScript solutions to the
-["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
+## Overview
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+This project is a simplified clone of the Redis in-memory data structure store. It supports basic Redis commands and
+functionalities.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Features
 
-# Passing the first stage
+- Basic Redis commands: `GET`, `SET`, `INCR`, `DECR`, `DEL`, etc.
+- Stream commands: `XADD`, `XRANGE`, `XREAD`
+- Transaction support: `MULTI`, `EXEC`, `DISCARD`
+- Replication support
 
-The entry point for your Redis implementation is in `app/main.js`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
+## Installation
+
+Install dependencies:
 
 ```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
+npm install
 ```
 
-That's all!
+## Usage
 
-# Stage 2 & beyond
+1. Start the server:
+    ```sh
+    npm run dev
+    ```
 
-Note: This section is for stages 2 and beyond.
+2. Connect to the server using a Redis client (e.g. redis-cli):
+    ```sh
+    redis-cli -h 127.0.0.1 -p 6379
+    ```
 
-1. Ensure you have `node (21)` installed locally
-1. Run `./your_program.sh` to run your Redis server, which is implemented in
-   `app/main.js`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+## Configuration
+
+You can configure the server using command-line parameters:
+
+- `--port`: Specify the port to run the server on (default: 6379)
+- `--replicaof`: Specify the master server for replication
+
+Example:
+
+```sh
+npm start -- --port 6380 --replicaof 127.0.0.1 6379
