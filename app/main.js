@@ -7,6 +7,9 @@ const processors = require('./processors');
 const { createServer } = require('./helpers/network');
 const { parseArrayBulkString, constructSimpleString } = require('./helpers/resp');
 
+/**
+ * Sets the server information based on the role (master or replica).
+ */
 function setServerInfo() {
   CONFIG.serverInfo.role = CONFIG[cliParameters.REPLICA_OF] ? 'slave' : 'master';
 
@@ -15,6 +18,9 @@ function setServerInfo() {
   }
 }
 
+/**
+ * Parses command-line parameters and updates the CONFIG object.
+ */
 function parseCliParameters() {
   const cliArguments = process.argv.slice(2);
 
@@ -104,10 +110,22 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
   }
 }
 
+/**
+ * Handles data events for the master.
+ *
+ * @param {Object} socket - The socket object representing the connection.
+ * @param {Buffer} data - The data received from the socket.
+ */
 function handleMasterDataEvent(socket, data) {
   handleDataEvent(socket, data, processors.master);
 }
 
+/**
+ * Handles data events for the replica.
+ *
+ * @param {Object} socket - The socket object representing the connection.
+ * @param {Buffer} data - The data received from the socket.
+ */
 function handleReplicaDataEvent(socket, data) {
   handleDataEvent(socket, data, processors.replica, (size) => {
     const newOffset = REPLICA.bytesProcessed + size;
@@ -116,7 +134,10 @@ function handleReplicaDataEvent(socket, data) {
   });
 }
 
-async function initialise() {
+/**
+ * Initializes the server and sets up the necessary configurations.
+ */
+function initialise() {
   setInterval(expireItems, EXPIRE_INTERVAL);
   parseCliParameters();
   setServerInfo();
@@ -135,6 +156,4 @@ async function initialise() {
   }
 }
 
-initialise().catch((err) => {
-  console.log('Fatal error:', err);
-});
+initialise();
