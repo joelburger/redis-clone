@@ -5,7 +5,7 @@ const { cliParameters, DEFAULT_HOST, DEFAULT_PORT, EXPIRE_INTERVAL, commands } =
 const { handshake } = require('./replica');
 const processors = require('./processors');
 const { createServer } = require('./helpers/network');
-const { parseArrayBulkString, constructSimpleString } = require('./helpers/resp');
+const { parseBulkStringArray, constructSimpleString } = require('./helpers/resp');
 
 /**
  * Sets the server information based on the role (master or replica).
@@ -84,7 +84,7 @@ function initialiseTransactionState(socket) {
 function handleDataEvent(socket, data, processors, updateReplicaOffset) {
   try {
     const stringData = data.toString('utf-8');
-    const redisCommands = parseArrayBulkString(stringData);
+    const redisCommands = parseBulkStringArray(stringData);
     redisCommands.forEach(({ command, size }) => {
       console.log(
         `Socket:  ${socket.remoteAddress}:${socket.remotePort}. Incoming command: ${command}. Bytes received: ${size}`,

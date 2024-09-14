@@ -18,11 +18,7 @@ function constructString(value) {
   return `$${String(value).length}\r\n${value}\r\n`;
 }
 
-function constructArrayDeclaration(length) {
-  return `*${length}\r\n`;
-}
-
-function constructArray(values, stringifyValues = true) {
+function constructBulkStringArray(values, stringifyValues = true) {
   let output = `*${values.length}\r\n`;
   for (const value of values) {
     if (stringifyValues) {
@@ -46,7 +42,7 @@ function constructSimpleString(stringValue) {
   return `+${stringValue}\r\n`;
 }
 
-function parseArrayBulkString(arrayString) {
+function parseBulkStringArray(arrayString) {
   const regex = /\*(\d+)\r\n(\$\d+\r\n.+\r\n)+/g;
   const matches = arrayString.match(regex) || [];
 
@@ -74,14 +70,13 @@ function removeTerminators(stringValue, subChar = '') {
 }
 
 module.exports = {
-  constructArray,
-  constructArrayDeclaration,
+  constructBulkStringArray,
   constructError,
   constructSimpleString,
   constructSimpleNumber,
   constructString,
   constructFile,
-  parseArrayBulkString,
+  parseBulkStringArray,
   removeTerminators,
   EMPTY_ARRAY,
   NULL_VALUE,

@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { CONFIG } = require('../global');
-const { constructArray } = require('../helpers/resp');
+const { constructBulkStringArray } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -9,7 +9,7 @@ module.exports = {
     const [subCommand, key] = args;
     if (subCommand.toLowerCase() === 'get') {
       const configValue = CONFIG[key.toLowerCase()];
-      socket.write(constructArray([key, configValue]));
+      socket.write(constructBulkStringArray([key, configValue]));
     } else {
       throw new Error(`Invalid argument for CONFIG: ${subCommand}`);
     }

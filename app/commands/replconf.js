@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, isReplica, isMaster } = require('../helpers/common');
-const { constructSimpleString, constructArray } = require('../helpers/resp');
+const { constructSimpleString, constructBulkStringArray } = require('../helpers/resp');
 const { REPLICA } = require('../global');
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
       case 'getack':
         if (isReplica()) {
           if (configValue === '*') {
-            socket.write(constructArray(['REPLCONF', 'ACK', String(REPLICA.bytesProcessed)]));
+            socket.write(constructBulkStringArray(['REPLCONF', 'ACK', String(REPLICA.bytesProcessed)]));
           } else {
             throw new Error('Invalid  argument for GETACK');
           }

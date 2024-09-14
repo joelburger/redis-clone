@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments, isMaster, isNumber, createItem } = require('../helpers/common');
 const { STORAGE, REPLICA } = require('../global');
-const { constructSimpleString, constructArray } = require('../helpers/resp');
+const { constructSimpleString, constructBulkStringArray } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {
@@ -11,7 +11,7 @@ module.exports = {
     STORAGE.set(key, item);
 
     if (isMaster()) {
-      REPLICA.clients.forEach((replicaSocket) => replicaSocket.write(constructArray(['SET', key, value])));
+      REPLICA.clients.forEach((replicaSocket) => replicaSocket.write(constructBulkStringArray(['SET', key, value])));
       socket.write(constructSimpleString('OK'));
     }
   },
