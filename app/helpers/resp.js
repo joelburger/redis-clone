@@ -1,3 +1,5 @@
+// See https://redis.io/docs/latest/develop/reference/protocol-spec/
+
 const NULL_VALUE = '$-1\r\n';
 
 const EMPTY_ARRAY = '*0\r\n';

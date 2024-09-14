@@ -39,7 +39,7 @@ const EXPIRE_INTERVAL = 10;
 
 module.exports = {
   commands,
-  cliParameters: cliParameters,
+  cliParameters,
   fileMarkers,
   DEFAULT_HOST,
   DEFAULT_PORT,
