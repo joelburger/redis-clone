@@ -1,11 +1,11 @@
 const { CONFIG } = require('../global');
 
-function validateArguments(commandName, args, minCount, maxCount = minCount) {
+function validateArguments(commandName, args, minCount, maxCount) {
   if (minCount === 0) {
     return args.length === 0;
   }
 
-  if (args.length < minCount || args.length > maxCount) {
+  if (args.length < minCount || (maxCount && args.length > maxCount)) {
     throw new Error(`Invalid number of arguments for ${commandName}`);
   }
 }
