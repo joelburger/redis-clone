@@ -65,6 +65,16 @@ function compareStreamId(leftStreamId, rightStreamId) {
   return leftSecondId === rightSecondId ? 0 : rightSecondId > leftSecondId ? 1 : -1;
 }
 
+/**
+ * Pauses the execution for a specified number of milliseconds.
+ *
+ * @param {number} ms - The number of milliseconds to sleep.
+ * @returns {Promise<void>} - A promise that resolves after the specified time.
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 module.exports = {
   compareStreamId,
   createItem,
@@ -72,5 +82,6 @@ module.exports = {
   isMaster,
   isNumber,
   isReplica,
+  sleep,
   validateArguments,
 };

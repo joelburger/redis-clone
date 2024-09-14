@@ -19,19 +19,15 @@ function constructString(value) {
 }
 
 function constructArray(values) {
-  let output = `*${values.length}\r\n`;
-  for (const value of values) {
-    output += value;
-  }
-  return output;
+  return values.reduce((acc, value) => {
+    return acc + value;
+  }, `*${values.length}\r\n`);
 }
 
 function constructBulkStringArray(values) {
-  let output = `*${values.length}\r\n`;
-  for (const value of values) {
-    output += constructString(value);
-  }
-  return output;
+  return values.reduce((acc, value) => {
+    return acc + constructString(value);
+  }, `*${values.length}\r\n`);
 }
 
 function constructError(message) {
