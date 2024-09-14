@@ -3,25 +3,41 @@ const { validateArguments, compareStreamId } = require('../helpers/common');
 const { STORAGE } = require('../global');
 const { constructArrayDeclaration, constructString, constructArray } = require('../helpers/resp');
 
+function parseQuery(keysAndIds) {
+  const half = Math.ceil(keysAndIds.length / 2);
+
+  const streamKeys = keysAndIds.slice(0, half);
+  const streamIds = keysAndIds.slice(half);
+
+  return streamKeys.map((key, index) => ({ streamKey: key, streamId: streamIds[index] }));
+}
+
 module.exports = {
   process(socket, args) {
     validateArguments(commands.XREAD, args, 3);
 
-    const [, streamKey, specifiedStreamId] = args;
-    const stream = STORAGE.has(streamKey) ? STORAGE.get(streamKey) : { value: new Set(), type: 'stream' };
+    const [, ...keysAndIds] = args;
+    const queries = parseQuery(keysAndIds);
 
     let result = '';
-    let entryCount = 0;
-
-    for (const entry of stream.value) {
-      if (compareStreamId(specifiedStreamId, entry.streamId) > 0) {
-        entryCount++;
-        result += `${constructArrayDeclaration(2)}${constructString(entry.streamId)}${constructArray(entry.data)}`;
+    for (const query of queries) {
+      let subResult = '';
+      const stream = STORAGE.has(query.streamKey)
+        ? STORAGE.get(query.streamKey)
+        : {
+            value: new Set(),
+            type: 'stream',
+          };
+      let entryCount = 0;
+      for (const entry of stream.value) {
+        if (compareStreamId(query.streamId, entry.streamId) > 0) {
+          entryCount++;
+          subResult += `${constructArrayDeclaration(2)}${constructString(entry.streamId)}${constructArray(entry.data)}`;
+        }
       }
+      result += `${constructArrayDeclaration(2)}${constructString(query.streamKey)}${constructArrayDeclaration(entryCount)}${subResult}`;
     }
-    result = `${constructArrayDeclaration(entryCount)}${result}`;
-    result = `${constructArrayDeclaration(1)}${constructArrayDeclaration(2)}${constructString(streamKey)}${result}`;
 
-    socket.write(result);
+    socket.write(`${constructArrayDeclaration(queries.length)}${result}`);
   },
 };
