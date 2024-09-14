@@ -17,7 +17,7 @@ module.exports = {
     validateArguments(commands.XREAD, args, 3);
 
     const blockTimeout = args[0].toLowerCase() === 'block' ? Number(args[1]) : undefined;
-    const keysAndIds = args.slice(blockTimeout ? 4 : 1);
+    const keysAndIds = args.slice(blockTimeout ? 3 : 1);
 
     const queries = parseQuery(keysAndIds);
 
