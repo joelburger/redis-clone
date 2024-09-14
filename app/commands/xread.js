@@ -15,7 +15,21 @@ function parseQuery(keysAndIds) {
   const streamKeys = keysAndIds.slice(0, half);
   const streamIds = keysAndIds.slice(half);
 
-  return streamKeys.map((key, index) => ({ streamKey: key, streamId: streamIds[index] }));
+  return streamKeys.map((key, index) => ({
+    streamKey: key,
+    streamId: replaceStreamIdSubstitution(key, streamIds[index]),
+  }));
+}
+
+function fetchMostRecentStreamId(streamKey) {
+  const stream = fetchStream(streamKey);
+  const lastEntry = Array.from(stream.value).pop();
+
+  return lastEntry ? lastEntry.streamId : '0-0';
+}
+
+function replaceStreamIdSubstitution(streamKey, streamId) {
+  return streamId === '$' ? fetchMostRecentStreamId(streamKey) : streamId;
 }
 
 /**

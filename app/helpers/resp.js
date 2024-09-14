@@ -54,7 +54,10 @@ function parseBulkStringArray(arrayString) {
       command: match
         .split('\r\n')
         .filter(
-          (component) => component && (!component.startsWith('*') || component === '*') && !component.startsWith('$'),
+          (component) =>
+            component &&
+            (!component.startsWith('*') || component === '*') &&
+            (!component.startsWith('$') || component === '$'),
         ),
     });
   });

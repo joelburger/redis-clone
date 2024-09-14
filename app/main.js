@@ -87,11 +87,10 @@ function handleDataEvent(socket, data, processors, updateReplicaOffset) {
     const redisCommands = parseBulkStringArray(stringData);
     redisCommands.forEach(({ command, size }) => {
       console.log(
-        `Socket:  ${socket.remoteAddress}:${socket.remotePort}. Incoming command: ${command}. Bytes received: ${size}`,
+        `Socket:  ${socket.remoteAddress}:${socket.remotePort}. Incoming command: ${command.join(' ')}. Bytes received: ${size}`,
       );
 
       const [commandName, ...args] = command;
-
       const processor = processors[commandName.toLowerCase()];
 
       if (processor) {
