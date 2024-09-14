@@ -1,4 +1,4 @@
-# Redis Clone
+# Redis Clone - CodeCrafters Challenge
 
 ## Overview
 
@@ -20,6 +20,9 @@ Install dependencies:
 npm install
 ```
 
+Install the CodeCrafters CLI. Refer to https://docs.codecrafters.io/cli/installation.
+
+
 ## Usage
 
 1. Start the server:
@@ -31,6 +34,11 @@ npm install
     ```sh
     redis-cli -h 127.0.0.1 -p 6379
     ```
+
+3. Running tests
+    ```sh
+   codecrafters test
+   ```
 
 ## Configuration
 
