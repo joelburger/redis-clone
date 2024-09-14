@@ -29,25 +29,16 @@ module.exports = {
 
     const blockTimeout = args[0].toLowerCase() === 'block' ? Number(args[1]) : undefined;
     const keysAndIds = args.slice(blockTimeout ? 3 : 1);
-
     const queries = parseQuery(keysAndIds);
 
-    let result = '';
-    for (const query of queries) {
-      let subResult = '';
+    const result = queries.map((query) => {
       const stream = fetchStream(query.streamKey);
+      const subResult = Array.from(stream.value)
+        .filter((entry) => compareStreamId(query.streamId, entry.streamId) > 0)
+        .map((entry) => constructArray([constructString(entry.streamId), constructArray(entry.data)], false));
+      return constructArray([constructString(query.streamKey), constructArray(subResult, false)], false);
+    });
 
-      let entryCount = 0;
-      for (const entry of stream.value) {
-        if (compareStreamId(query.streamId, entry.streamId) > 0) {
-          entryCount++;
-          subResult += `${constructArrayDeclaration(2)}${constructString(entry.streamId)}${constructArray(entry.data)}`;
-        }
-      }
-
-      result += `${constructArrayDeclaration(2)}${constructString(query.streamKey)}${constructArrayDeclaration(entryCount)}${subResult}`;
-    }
-
-    socket.write(`${constructArrayDeclaration(queries.length)}${result}`);
+    socket.write(constructArray(result, false));
   },
 };
