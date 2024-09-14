@@ -1,7 +1,13 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { TRANSACTION } = require('../global');
-const { constructError, EMPTY_ARRAY, constructBulkStringArray, removeTerminators } = require('../helpers/resp');
+const {
+  constructError,
+  EMPTY_ARRAY,
+  constructBulkStringArray,
+  removeTerminators,
+  constructArray,
+} = require('../helpers/resp');
 
 function createResponseAggregator() {
   const responses = [];
@@ -11,7 +17,7 @@ function createResponseAggregator() {
       responses.push(value);
     },
     getBulkResponse() {
-      return constructBulkStringArray(responses, false);
+      return constructArray(responses);
     },
   };
 }

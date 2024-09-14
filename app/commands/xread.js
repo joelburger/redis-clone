@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments, compareStreamId } = require('../helpers/common');
 const { STORAGE } = require('../global');
-const { constructString, constructBulkStringArray } = require('../helpers/resp');
+const { constructString, constructBulkStringArray, constructArray } = require('../helpers/resp');
 
 function parseQuery(keysAndIds) {
   const half = Math.ceil(keysAndIds.length / 2);
@@ -35,15 +35,10 @@ module.exports = {
       const stream = fetchStream(query.streamKey);
       const subResult = Array.from(stream.value)
         .filter((entry) => compareStreamId(query.streamId, entry.streamId) > 0)
-        .map((entry) =>
-          constructBulkStringArray([constructString(entry.streamId), constructBulkStringArray(entry.data)], false),
-        );
-      return constructBulkStringArray(
-        [constructString(query.streamKey), constructBulkStringArray(subResult, false)],
-        false,
-      );
+        .map((entry) => constructArray([constructString(entry.streamId), constructBulkStringArray(entry.data)]));
+      return constructArray([constructString(query.streamKey), constructArray(subResult)]);
     });
 
-    socket.write(constructBulkStringArray(result, false));
+    socket.write(constructArray(result));
   },
 };

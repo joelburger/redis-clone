@@ -18,14 +18,18 @@ function constructString(value) {
   return `$${String(value).length}\r\n${value}\r\n`;
 }
 
-function constructBulkStringArray(values, stringifyValues = true) {
+function constructArray(values) {
   let output = `*${values.length}\r\n`;
   for (const value of values) {
-    if (stringifyValues) {
-      output += constructString(value);
-    } else {
-      output += value;
-    }
+    output += value;
+  }
+  return output;
+}
+
+function constructBulkStringArray(values) {
+  let output = `*${values.length}\r\n`;
+  for (const value of values) {
+    output += constructString(value);
   }
   return output;
 }
@@ -70,15 +74,16 @@ function removeTerminators(stringValue, subChar = '') {
 }
 
 module.exports = {
+  constructArray,
   constructBulkStringArray,
   constructError,
-  constructSimpleString,
-  constructSimpleNumber,
-  constructString,
   constructFile,
+  constructString,
+  constructSimpleNumber,
+  constructSimpleString,
   parseBulkStringArray,
   removeTerminators,
   EMPTY_ARRAY,
-  NULL_VALUE,
   EMPTY_RDB_FILE,
+  NULL_VALUE,
 };

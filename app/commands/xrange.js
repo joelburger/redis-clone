@@ -1,6 +1,6 @@
 const { commands } = require('../constants');
 const { validateArguments, compareStreamId } = require('../helpers/common');
-const { constructBulkStringArray, constructString } = require('../helpers/resp');
+const { constructArray, constructBulkStringArray, constructString } = require('../helpers/resp');
 const { STORAGE } = require('../global');
 
 function addDefaultSequenceNumber(streamId) {
@@ -27,13 +27,11 @@ module.exports = {
     const result = Array.from(stream.value)
       .filter(
         (entry) =>
-          (compareStreamId(fromStreamId, entry.streamId) >= 0 && !toStreamId) ||
-          compareStreamId(toStreamId, entry.streamId) <= 0,
+          compareStreamId(fromStreamId, entry.streamId) >= 0 &&
+          (!toStreamId || compareStreamId(toStreamId, entry.streamId) <= 0),
       )
-      .map((entry) =>
-        constructBulkStringArray([constructString(entry.streamId), constructBulkStringArray(entry.data)], false),
-      );
+      .map((entry) => constructArray([constructString(entry.streamId), constructBulkStringArray(entry.data)]));
 
-    socket.write(constructBulkStringArray(result, false));
+    socket.write(constructArray(result));
   },
 };
