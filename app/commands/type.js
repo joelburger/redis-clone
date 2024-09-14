@@ -1,7 +1,7 @@
 const { commands } = require('../constants');
 const { validateArguments } = require('../helpers/common');
 const { STORAGE } = require('../global');
-const { constructSimpleString, NULL_VALUE } = require('../helpers/resp');
+const { constructSimpleString, NIL_VALUE } = require('../helpers/resp');
 
 module.exports = {
   process(socket, args) {

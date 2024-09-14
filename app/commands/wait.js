@@ -30,7 +30,7 @@ function checkAckAndRespond(socket) {
       console.log(`Requested ack has been reached. Request was ${requestedAck}`);
       socket.write(constructSimpleNumber(REPLICA.ack));
     }
-  }, 1);
+  }, 500);
 }
 
 /**

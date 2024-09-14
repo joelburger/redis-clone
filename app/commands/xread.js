@@ -6,7 +6,7 @@ const {
   constructBulkStringArray,
   constructArray,
   EMPTY_ARRAY,
-  NULL_VALUE,
+  NIL_VALUE,
 } = require('../helpers/resp');
 
 function parseQuery(keysAndIds) {
@@ -53,12 +53,15 @@ module.exports = {
     const queries = parseQuery(keysAndIds);
 
     if (blockTimeout) {
+      // Continuously check for new data until the block timeout is reached
       const startTime = Date.now();
       while (startTime + blockTimeout > Date.now()) {
+        // Reduce polling frequency by pausing execution for 2.5 seconds
         await sleep(2500);
         sendData(socket, queries);
       }
-      socket.write(NULL_VALUE);
+      // Write a NIL value to the socket if the block timeout is reached
+      socket.write(NIL_VALUE);
     } else {
       sendData(socket, queries);
     }
