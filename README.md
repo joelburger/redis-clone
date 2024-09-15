@@ -10,6 +10,7 @@ functionalities.
 - Basic Redis commands: `GET`, `SET`, `INCR`, `DECR`, `DEL`, etc.
 - Stream commands: `XADD`, `XRANGE`, `XREAD`
 - Transaction support: `MULTI`, `EXEC`, `DISCARD`
+- Persistence support
 - Replication support
 
 ## Installation
