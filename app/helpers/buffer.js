@@ -19,7 +19,7 @@ function readString(buffer, cursor = 0) {
   cursor++;
 
   // retrieve the string value
-  const stringValue = buffer.slice(cursor, cursor + stringLength)?.toString('ascii');
+  const stringValue = buffer.slice(cursor, cursor + stringLength)?.toString('utf8');
 
   // increment cursor with length of string
   cursor += stringLength;

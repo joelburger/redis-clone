@@ -83,7 +83,7 @@ function initialiseTransactionState(socket) {
  */
 function handleDataEvent(socket, data, processors, updateReplicaOffset) {
   try {
-    const stringData = data.toString('utf-8');
+    const stringData = data.toString('utf8');
     const redisCommands = parseBulkStringArray(stringData);
     redisCommands.forEach(({ command, size }) => {
       console.log(
