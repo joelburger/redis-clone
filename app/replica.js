@@ -38,7 +38,7 @@ async function handshake(serverHost, serverPort, dataEventHandler) {
   if (isMaster()) return;
 
   const [masterHost, masterPort] = CONFIG[cliParameters.REPLICA_OF].split(' ');
-  const socket = createSocket(masterPort, masterHost, dataEventHandler);
+  const socket = createSocket(dataEventHandler);
   socket.connect(masterPort, masterHost);
   await ping(socket);
   await sendListeningPort(socket, serverPort);

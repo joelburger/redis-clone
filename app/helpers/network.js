@@ -1,7 +1,7 @@
 const net = require('net');
 const { readString } = require('./buffer');
 
-function createSocket(host, port, dataEventHandler) {
+function createSocket(dataEventHandler) {
   const socket = new net.Socket();
 
   socket.on('data', (data) => dataEventHandler(socket, data));
@@ -15,7 +15,7 @@ function createSocket(host, port, dataEventHandler) {
   });
 
   socket.on('connect', () => {
-    console.log(`Connected to ${host}:${port}`);
+    console.log(`Connected to ${socket.remoteAddress}:${socket.remotePort}`);
   });
 
   return socket;
