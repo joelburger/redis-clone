@@ -43,6 +43,8 @@ function createItem(key, value, type, expiryArgument, expiresIn) {
 
   if (expiryArgument?.toLowerCase() === 'px') {
     item.expireAt = new Date(Date.now() + Number(expiresIn));
+  } else if (expiryArgument?.toLowerCase() === 'ex') {
+    item.expireAt = new Date(Date.now() + Number(expiresIn) * 1000);
   }
 
   return item;

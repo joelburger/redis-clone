@@ -142,7 +142,7 @@ function initialise() {
   setServerInfo();
   loadDatabase();
 
-  const serverHost = DEFAULT_HOST;
+  const serverHost = CONFIG[cliParameters.HOST] || DEFAULT_HOST;
   const serverPort = CONFIG[cliParameters.PORT] || DEFAULT_PORT;
 
   const server = createServer(serverHost, serverPort, handleMasterDataEvent);

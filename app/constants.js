@@ -22,6 +22,7 @@ const commands = {
 const cliParameters = {
   DIRECTORY: 'dir',
   DB_FILENAME: 'dbfilename',
+  HOST: 'host',
   PORT: 'port',
   REPLICA_OF: 'replicaof',
 };
